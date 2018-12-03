@@ -64,11 +64,11 @@ class Mainserver:
                             connection.close()
                             break
                         # connections established, write user id to user online storage, send users contacts online
-                        if status == 1 or status == 4:
+                        if status == 1 or status == 4 or status == 6:
                             #check if there is a user in the repository online
                             self.check_online(userId)
                             #send user data online
-                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId), self.onlinestorage.get_storage())
+                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId), self.onlinestorage.get_storage(), status)
                             connection.send(self.send_frame(contacts_online, 0x1))
                         #send a reply message
                         if status == 2:
@@ -79,7 +79,6 @@ class Mainserver:
                                 self.loger.set_log(Error1)
                                 break
                     except ConnectionAbortedError as Error2:
-                        self.check_online(userId)
                         self.loger.set_log(Error2)
                         break
                 break
@@ -160,12 +159,14 @@ class Mainserver:
         return json.loads(data.decode())['status']
 
     #return contacts user online
-    def contacts_online(self, user_contacts, contacts_online):
+    def contacts_online(self, user_contacts, contacts_online, status=0):
         online = {str(online[0]): online[1] for online in user_contacts if online[0] in contacts_online}
-        if online:
-            mes = '{"status":4, "message":' + json.dumps(online) + ', "id":2}'
+        if online and status == 6:
+            mes = '{"status":6, "message":' + json.dumps(online) + ', "id":0}'
+        elif online:
+            mes = '{"status":4, "message":' + json.dumps(online) + ', "id":0}'
         else:
-            mes = '{"status":5, "message":' + json.dumps(online) + ', "id":2}'
+            mes = '{"status":5, "message":' + json.dumps(online) + ', "id":0}'
         print(mes)
         return mes.encode()
 
