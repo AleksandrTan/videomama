@@ -175,7 +175,7 @@ class Mainserver:
         if userid not in self.onlinestorage.get_storage():
             self.onlinestorage.adduserid(userid)
 
-
+#start server
 if __name__ == '__main__':
     mainServer = Mainserver()
     mainServer.startserver()
