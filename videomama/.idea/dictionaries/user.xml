@@ -1,0 +1,36 @@
+<component name="ProjectDictionaryState">
+  <dictionary name="user">
+    <words>
+      <w>adduserid</w>
+      <w>brouser</w>
+      <w>checkuserid</w>
+      <w>checkusreid</w>
+      <w>dataget</w>
+      <w>dbhandle</w>
+      <w>decodejson</w>
+      <w>deletesinglerecord</w>
+      <w>deleteuserid</w>
+      <w>getalk</w>
+      <w>getsinglerecord</w>
+      <w>getusersdata</w>
+      <w>loger</w>
+      <w>looger</w>
+      <w>mainclient</w>
+      <w>mainserver</w>
+      <w>mainsocket</w>
+      <w>onlinestorage</w>
+      <w>opcode</w>
+      <w>setsinglerecord</w>
+      <w>startclient</w>
+      <w>startserver</w>
+      <w>stopclient</w>
+      <w>stopserver</w>
+      <w>subid</w>
+      <w>threadid</w>
+      <w>userid</w>
+      <w>videomama</w>
+      <w>videomum</w>
+      <w>websocket</w>
+    </words>
+  </dictionary>
+</component>

@@ -1,0 +1,3 @@
+Error1
+2018-11-30 22:26:26,958 - mainserver1 - INFO - Error1
+2018-11-30 22:29:47,515 - mainserver1 - INFO - name 'messages' is not defined
