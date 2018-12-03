@@ -32,7 +32,7 @@ class Mainserver:
             if address:
                 thread.start_new_thread(self.getalk, (connection, i))
 
-    def getalk(self, connection, threadid):
+    def getalk(self, connection, i):
         while True:
             data = connection.recv(6024).strip().decode('latin-1')
             contacts_storage = MySqlStorage()
@@ -64,12 +64,11 @@ class Mainserver:
                             connection.close()
                             break
                         # connections established, write user id to user online storage, send users contacts online
-                        if status == 1:
+                        if status == 1 or status == 4:
                             #check if there is a user in the repository online
                             self.check_online(userId)
                             #send user data online
-                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId)
-                                                                   , self.onlinestorage.get_storage())
+                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId), self.onlinestorage.get_storage())
                             connection.send(self.send_frame(contacts_online, 0x1))
                         #send a reply message
                         if status == 2:
@@ -78,8 +77,9 @@ class Mainserver:
                                 connection.send(self.send_frame(mes, 0x1))
                             except ConnectionAbortedError as Error1:
                                 self.loger.set_log(Error1)
-                                pass
-                    except (UnicodeDecodeError, ConnectionAbortedError) as Error2:
+                                break
+                    except ConnectionAbortedError as Error2:
+                        self.check_online(userId)
                         self.loger.set_log(Error2)
                         break
                 break
@@ -168,7 +168,6 @@ class Mainserver:
             mes = '{"status":5, "message":' + json.dumps(online) + ', "id":2}'
         print(mes)
         return mes.encode()
-
 
     #check if there is a user ID in the repository on the onlinestorage
     def check_online(self, userid):
