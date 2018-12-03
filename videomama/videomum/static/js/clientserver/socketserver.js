@@ -32,7 +32,10 @@ sockConnect.onmessage = function(event) {
     }
     //Get users online
     else if(answer.status == 4){
-        alert(1000);
+        alert(4000);
+    }
+    else if(answer.status == 5){
+        alert(5000);
     }
 
 };

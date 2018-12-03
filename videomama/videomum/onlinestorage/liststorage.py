@@ -1,3 +1,6 @@
+"""
+Access to the repository of users who are online based on list
+"""
 from videomum.onlinestorage import interstorage
 
 

@@ -63,30 +63,24 @@ class Mainserver:
                             self.onlinestorage.deleteuserid(userId)
                             connection.close()
                             break
-                        # write user id to user online storage, send users contacts online
+                        # connections established, write user id to user online storage, send users contacts online
                         if status == 1:
+                            #check if there is a user in the repository online
                             self.check_online(userId)
-                            user_contacts = contacts_storage.get_all_contacts(userId)
-                            #if user have contacts
-                            if user_contacts:
-                                contacts_online = self.contacts_online(user_contacts,  self.onlinestorage.get_storage())
-                                #if some user contacts online
-                                if contacts_online:
-                                    connection.send(self.send_frame(contacts_online, 0x1))
-                                else:
-                                    pass
-                            else:
-                                pass
-                        #send message
-                        try:
-                            if status == 2:
+                            #send user data online
+                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId)
+                                                                   , self.onlinestorage.get_storage())
+                            connection.send(self.send_frame(contacts_online, 0x1))
+                        #send a reply message
+                        if status == 2:
+                            try:
                                 mes = '{"status":2, "message":{"1":"Привет Клиент", "2":"Hello"}, "id":2}'.encode()
                                 connection.send(self.send_frame(mes, 0x1))
-                        except ConnectionAbortedError as Error1:
-                            self.loger.set_log(Error1)
-                            pass
-                    except (UnicodeDecodeError, ConnectionAbortedError):
-                        self.loger.set_log('Error2')
+                            except ConnectionAbortedError as Error1:
+                                self.loger.set_log(Error1)
+                                pass
+                    except (UnicodeDecodeError, ConnectionAbortedError) as Error2:
+                        self.loger.set_log(Error2)
                         break
                 break
             else:
@@ -96,6 +90,7 @@ class Mainserver:
                                 "\r\n"
                                 "Incorrect request")
                 return
+        return
 
     def handshake(self, key, connection):
         # calculating response as per protocol RFC
@@ -167,8 +162,13 @@ class Mainserver:
     #return contacts user online
     def contacts_online(self, user_contacts, contacts_online):
         online = {str(online[0]): online[1] for online in user_contacts if online[0] in contacts_online}
-        mes = '{"status":4, "message":'+json.dumps(online)+', "id":2}'
+        if online:
+            mes = '{"status":4, "message":' + json.dumps(online) + ', "id":2}'
+        else:
+            mes = '{"status":5, "message":' + json.dumps(online) + ', "id":2}'
+        print(mes)
         return mes.encode()
+
 
     #check if there is a user ID in the repository on the onlinestorage
     def check_online(self, userid):
