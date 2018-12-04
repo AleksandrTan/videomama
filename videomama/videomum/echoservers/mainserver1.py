@@ -9,12 +9,14 @@ import json
 
 from videomum.usercontacts.msdb.msdbcontacts import MySqlStorage
 from videomum.onlinestorage.liststorage import ListStorage
+from videomum.messagestorage.dictstorage.msststorage import MSMessagtStorage
 from videomum.logobject.logserver1 import LogServerOne
 
 
 class Mainserver:
     def __init__(self):
         self.onlinestorage = ListStorage()
+        self.message_storage = MSMessagtStorage()
         self.myHost = '127.0.0.1'
         self.myPort = 50007
         self.magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
@@ -22,6 +24,7 @@ class Mainserver:
         self.mainsocket.bind((self.myHost, self.myPort))
         self.mainsocket.listen(5)
         self.loger = LogServerOne()
+        self.thread_lock = thread.allocate_lock()
 
     def startserver(self):
         print('Start server')
@@ -60,16 +63,20 @@ class Mainserver:
                         print(status)
                         #if the user has finished work
                         if status == 3:
+                            self.thread_lock.acquire()
                             self.onlinestorage.deleteuserid(userId)
+                            self.thread_lock.release()
                             connection.close()
                             break
                         # connections established, write user id to user online storage, send users contacts online
                         if status == 1 or status == 4 or status == 6:
                             #check if there is a user in the repository online
+                            self.thread_lock.acquire()
                             self.onlinestorage.checkuserid(userId)
                             #send user data online
                             contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId),
                                                                    self.onlinestorage.get_storage(), status)
+                            self.thread_lock.release()
                             connection.send(self.send_frame(contacts_online, 0x1))
                         #send a reply message
                         if status == 2:

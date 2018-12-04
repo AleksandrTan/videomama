@@ -1,10 +1,10 @@
 """
-Access to the repository of user messages based on the dict
+Access to the repository of user messages based on the MySQL database
 """
 from videomum.messagestorage.intermesstorage import SuperMesStorage
 
 
-class DictStorage(SuperMesStorage):
+class MSMessagtStorage(SuperMesStorage):
 
     def get_messages(self, userid: int) -> dict:
         pass

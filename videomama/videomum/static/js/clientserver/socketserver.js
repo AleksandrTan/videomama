@@ -74,7 +74,7 @@ function parseOnline(usersData = {}) {
         dataconnect.usersOnline = usersData;
         parentList.empty();
         for(let key in usersData){
-            parentList.append('<p><button type="button" class="btn btn-xs btn-success" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
+            parentList.append('<p id="'+key+'"><button type="button" class="btn btn-xs btn-success" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
         }
     }
     else {
@@ -121,6 +121,7 @@ function parseOnlineTimer(usersData = {}) {
                 parentList.append('<p id="'+key+'"><button type="button" class="btn btn-xs btn-success" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
             }
         }
+        console.log(dataconnect.usersOnline);
     }
     else {
         parentList.empty();

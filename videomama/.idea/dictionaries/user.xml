@@ -18,6 +18,7 @@
       <w>mainclient</w>
       <w>mainserver</w>
       <w>mainsocket</w>
+      <w>messagt</w>
       <w>onlinestorage</w>
       <w>opcode</w>
       <w>setsinglerecord</w>
