@@ -6,8 +6,12 @@ from videomum.onlinestorage import interstorage
 
 class ListStorage(interstorage.SuperStorage):
 
-    def checkuserid(self, userid: int) -> bool:
-        return True if userid in self.storage else False
+    def __init__(self):
+        self.storage = list()
+
+    def checkuserid(self, userid: int) -> None:
+        if userid not in self.storage:
+            self.adduserid(userid)
 
     def adduserid(self, userid: int) -> None:
         self.storage.append(userid)

@@ -66,9 +66,10 @@ class Mainserver:
                         # connections established, write user id to user online storage, send users contacts online
                         if status == 1 or status == 4 or status == 6:
                             #check if there is a user in the repository online
-                            self.check_online(userId)
+                            self.onlinestorage.checkuserid(userId)
                             #send user data online
-                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId), self.onlinestorage.get_storage(), status)
+                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId),
+                                                                   self.onlinestorage.get_storage(), status)
                             connection.send(self.send_frame(contacts_online, 0x1))
                         #send a reply message
                         if status == 2:
@@ -168,11 +169,6 @@ class Mainserver:
         else:
             mes = '{"status":5, "message":' + json.dumps(online) + ', "id":0}'
         return mes.encode()
-
-    #check if there is a user ID in the repository on the onlinestorage
-    def check_online(self, userid):
-        if userid not in self.onlinestorage.get_storage():
-            self.onlinestorage.adduserid(userid)
 
 #start server
 if __name__ == '__main__':

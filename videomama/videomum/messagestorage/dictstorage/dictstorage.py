@@ -6,9 +6,6 @@ from videomum.messagestorage.intermesstorage import SuperMesStorage
 
 class DictStorage(SuperMesStorage):
 
-    def __init__(self):
-        self.storage = dict()
-
     def get_messages(self, userid: int) -> dict:
         pass
 

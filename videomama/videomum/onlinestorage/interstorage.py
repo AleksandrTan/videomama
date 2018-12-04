@@ -7,12 +7,9 @@ from abc import ABCMeta, abstractmethod
 
 
 class SuperStorage(metaclass=ABCMeta):
-
-    def __init__(self):
-        self.storage = list()
-
+    #Check if there is a user ID in the repository on the onlinestorage, if not - add
     @abstractmethod
-    def checkuserid(self, userid: int)->bool:
+    def checkuserid(self, userid: int)->None:
         pass
 
     @abstractmethod
@@ -28,6 +25,7 @@ class SuperStorage(metaclass=ABCMeta):
     def getusersdata(self, userid: int, subid: int)->tuple:
         pass
 
+    #Returns a repository of users on the network as an iterable object containing the user id
     @abstractmethod
-    def get_storage(self)->list:
-        return self.storage
+    def get_storage(self) -> iter:
+        pass

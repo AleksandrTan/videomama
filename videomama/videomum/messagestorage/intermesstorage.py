@@ -6,6 +6,10 @@ from abc import ABCMeta, abstractmethod
 
 
 class SuperMesStorage(metaclass=ABCMeta):
+
+    def __init__(self):
+        self.storage = dict()
+
     @abstractmethod
     def get_messages(self, userid: int)->dict:
         pass
@@ -21,3 +25,7 @@ class SuperMesStorage(metaclass=ABCMeta):
     @abstractmethod
     def count_message(self, userid: int)->int:
         pass
+
+    @abstractmethod
+    def get_storage(self) -> dict:
+        return self.storage
