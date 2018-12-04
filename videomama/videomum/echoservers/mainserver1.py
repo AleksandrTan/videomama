@@ -24,9 +24,10 @@ class Mainserver:
         self.loger = LogServerOne()
 
     def startserver(self):
+        print('Start server')
         i = 0
         while True:
-            print('Start server')
+            print('Start thread')
             connection, address = self.mainsocket.accept()
             i += 1
             if address:
@@ -36,7 +37,6 @@ class Mainserver:
         while True:
             data = connection.recv(6024).strip().decode('latin-1')
             contacts_storage = MySqlStorage()
-            print(self.onlinestorage)
             if not data:
                 break
             headers = data.split("\r\n")
@@ -57,7 +57,7 @@ class Mainserver:
                         status = self.analyze_status(dataClean['payload'])
                         userId = self.decode_json_userid(dataClean['payload'])
                         message = self.decode_json_message(dataClean['payload'])
-                        print(message, 8)
+                        print(status)
                         #if the user has finished work
                         if status == 3:
                             self.onlinestorage.deleteuserid(userId)
@@ -167,7 +167,6 @@ class Mainserver:
             mes = '{"status":4, "message":' + json.dumps(online) + ', "id":0}'
         else:
             mes = '{"status":5, "message":' + json.dumps(online) + ', "id":0}'
-        print(mes)
         return mes.encode()
 
     #check if there is a user ID in the repository on the onlinestorage

@@ -35,6 +35,7 @@ sockConnect.onmessage = function(event) {
     else if((answer.status == 4) || (answer.status == 5)){
         parseOnline(answer.message);
     }
+    //Get users online every 10 seconds
     else if (answer.status == 6){
         parseOnlineTimer(answer.message);
     }
@@ -73,36 +74,33 @@ function parseOnline(usersData = {}) {
         dataconnect.usersOnline = usersData;
         parentList.empty();
         for(let key in usersData){
-            parentList.append('<p><button type="button" class="btn btn-xs btn-primary" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
+            parentList.append('<p><button type="button" class="btn btn-xs btn-success" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
         }
-        console.log(dataconnect.usersOnline, 0);
     }
     else {
         dataconnect.usersOnline = {};
         parentList.empty();
         parentList.append('<p>There are no subscribers in the network</p>');
-        console.log(dataconnect.usersOnline, 9);
     }
 }
 
 //Check users online every 5 seconds
 setInterval(function () {
     sockConnect.send(prepareData(6, dataconnect.userId, 0, 'Get users online'));
-}, 5000);
+}, 10000);
 
-//Parse list users online every 5 seconds
+//Parse list users online every 10 seconds
 function parseOnlineTimer(usersData = {}) {
     let parentList = $('#onlineList');
     if ($.isEmptyObject(dataconnect.usersOnline)){
         dataconnect.usersOnline = usersData;
         parentList.empty();
         for(let key in usersData){
-            parentList.append('<p id="'+key+'"><button type="button" class="btn btn-xs btn-primary" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
+            parentList.append('<p id="'+key+'"><button type="button" class="btn btn-xs btn-success" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
         }
         return;
     }
     if (!$.isEmptyObject(usersData)){
-        console.log(usersData, 1);
         //delete ofline users
         for(let key in dataconnect.usersOnline){
             if (key in usersData){
@@ -120,15 +118,13 @@ function parseOnlineTimer(usersData = {}) {
             }
             else {
                 dataconnect.usersOnline[key] = usersData[key];
-                parentList.append('<p id="'+key+'"><button type="button" class="btn btn-xs btn-primary" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
+                parentList.append('<p id="'+key+'"><button type="button" class="btn btn-xs btn-success" data-id-omline="'+key+'">'+usersData[key]+'</button></p>');
             }
         }
-        console.log(dataconnect.usersOnline, 2);
     }
     else {
         parentList.empty();
         parentList.append('<p>There are no subscribers in the network</p>');
-        console.log(dataconnect.usersOnline, 3);
     }
 }
 
@@ -152,6 +148,7 @@ sockConnect.onclose = function(event) {
         $('#serverStatus').text('Server is not available...').css('color', 'red');
         console.log("Соединение Закрыто корректно...");
         dataconnect.serverStatus = 0;
+        $('#onlineList').empty();
         $('#closeButton').hide();
     }
 };

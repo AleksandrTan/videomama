@@ -7,18 +7,17 @@ from abc import ABCMeta, abstractmethod
 
 class SuperMesStorage(metaclass=ABCMeta):
     @abstractmethod
-    def checkuserid(self, userid: int)->bool:
+    def get_messages(self, userid: int)->dict:
         pass
 
     @abstractmethod
-    def adduserid(self, userid: int)->None:
+    def save_message(self, userid: int, message: str, subuser: int)->None:
         pass
 
     @abstractmethod
-    def deleteuserid(self, userid: int)->None:
+    def delete_message(self, userid: int)->None:
         pass
 
-    #get user and subscriber data
     @abstractmethod
-    def getusersdata(self, userid: int, subid: int)->tuple:
+    def count_message(self, userid: int)->int:
         pass
