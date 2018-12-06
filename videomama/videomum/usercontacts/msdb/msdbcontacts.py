@@ -8,14 +8,12 @@ from videomum.usercontacts.msdb.models import Contacts, User
 
 class MySqlStorage(SuperContactsStorage):
 
-    def __init__(self):
-        self.data = list()
-
     #returns a list of tuples containing an (id, contact name)
     def get_all_contacts(self, userid: int)->list:
+        data = list()
         for contact in Contacts.select().join(User).where((User.id == userid) & (Contacts.is_ban == 0)):
-            self.data.append((contact.contact_id, contact.contact_name))
-        return self.data
+           data.append((contact.contact_id, contact.contact_name))
+        return data
 
     def add_contact(self, id_contact: int) -> None:
         pass

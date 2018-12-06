@@ -168,13 +168,16 @@ class Mainserver:
 
     #return contacts user online
     def contacts_online(self, user_contacts, contacts_online, status=0):
+        all_contacts = {str(online[0]): online[1] for online in user_contacts}
         online = {str(online[0]): online[1] for online in user_contacts if online[0] in contacts_online}
         if online and status == 6:
-            mes = '{"status":6, "message":' + json.dumps(online) + ', "id":0}'
+            mes = '{"status":6, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
         elif online:
-            mes = '{"status":4, "message":' + json.dumps(online) + ', "id":0}'
+            mes = '{"status":4, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
         else:
-            mes = '{"status":5, "message":' + json.dumps(online) + ', "id":0}'
+            mes = '{"status":5, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
+        print(online)
+        print(all_contacts)
         return mes.encode()
 
 #start server
