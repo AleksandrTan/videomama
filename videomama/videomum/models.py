@@ -13,3 +13,11 @@ class Contacts(models.Model):
     is_ban = models.BooleanField(default=False)
     date_create = models.DateTimeField(auto_now_add=True)
     objects = ManageContacts()
+
+
+class ManageMessages(models.Manager):
+    pass
+
+
+class Messages(models.Model):
+    pass

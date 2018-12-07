@@ -40,10 +40,10 @@
                                                     </button>
                                                 </td>
                                                 <td>
-                                                    <p class="help-block" id="inTouch"></p>
+                                                    <p class="help-block" id="inTouch" style="font-weight:900; color: blue;"></p>
                                                 </td>
                                                 <td>
-                                                    <p class="help-block" id="userName">{{ user.username }}</p>
+                                                    <p class="help-block" id="userName" style="font-weight:900; color: #5cb85c;">{{ user.username }}</p>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -94,8 +94,8 @@
         'userId':{{ user.id }},
         'userName': '{{ user.username }}',
         'serverStatus':0,
-        'activTouchId':2,
-        'activTouchName':'Mama',
+        'activTouchId':0,
+        'activTouchName':'',
         'usersOnline':{},
         'usersContacts':{},
     }

@@ -9,23 +9,58 @@ function getSocketConnect(){
     return new WebSocket("ws://"+myHost+":"+myPort);
 }
 //Create socket
-sockConnect = getSocketConnect();
+let sockConnect = getSocketConnect();
 
 sockConnect.onopen = function(ws) {
     console.log("Соединение открыто...");
     if(this.readyState == 1){
         //send user id after establishing connection
         setTimeout(function () {
-            sockConnect.send(prepareData(1, dataconnect.userId, 0, 'Hello'));
+            sockConnect.send(prepareData(1, dataconnect.userId));
             $('#serverStatus').text('Server connected...').css('color', 'green');
             dataconnect.serverStatus = 1;
             $('#closeButton').show();
         }, 1000);
     }
 };
+
+$('#onlineList').on('click', 'p', function () {
+    $('#inTouch').text(this.getAttribute('name'));
+    dataconnect.activTouchName = this.getAttribute('name');
+    dataconnect.activTouchId = this.id;
+});
+//Prepare data for message request
+function prepareDataMessage(status, idUser, subId=0, message='', subName=0) {
+    return '{"status":'+status+', "userId":'+idUser+', "subId":'+subId+',' +
+           ' "message":"'+message+'", "subName":"'+subName+'"}'
+}
+
+function sendMessage() {
+    let sendText = $('#dataSend').val();
+    if (!sendText){
+        return
+    }
+    let getText = $('#dataGet').text();
+    if (dataconnect.activTouchId){
+        sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.activTouchName));
+        $('#dataGet').text(getText + '\n' + dataconnect.userName + ':' +sendText + '\n');
+        $('#dataSend').val('');
+    }
+}
+//Send with button
+$('#sendButton').on('click', function () {
+   sendMessage()
+});
+//Send with "Enter" key
+$('html').keydown(function(e){
+  if (e.keyCode == 13) {
+        sendMessage()
+    }
+});
 //Get answer on server
 sockConnect.onmessage = function(event) {
     let answer = JSON.parse(event.data);
+    console.log(answer);
     //Get message
     if(answer.status == 2){
         let text = $('#dataGet').text();
@@ -41,32 +76,10 @@ sockConnect.onmessage = function(event) {
     }
 };
 
-//Prepare data for sending
-function prepareData(status, idUser, idSub=0, message) {
-    return '{"status":'+status+', "userId":'+idUser+', "subId":'+dataconnect.activTouchId+',' +
-           ' "mes":"'+message+'", "subName":"'+dataconnect.activTouchName+'"}'
+//Prepare data for service request
+function prepareData(status, idUser) {
+    return '{"status":'+status+', "userId":'+idUser+'}';
 }
-
-function sendMessage() {
-    let sendText = $('#dataSend').val();
-    if (!sendText){
-        return
-    }
-    let getText = $('#dataGet').text();
-    sockConnect.send(prepareData(2, dataconnect.userId, 0, sendText));
-    $('#dataGet').text(getText + '\n' + dataconnect.userName + ':' +sendText + '\n');
-    $('#dataSend').val('');
-}
-//Send with button
-$('#sendButton').on('click', function () {
-   sendMessage()
-});
-//Send with "Enter" key
-$('html').keydown(function(e){
-  if (e.keyCode == 13) {
-        sendMessage()
-    }
-});
 
 //Parse list users online
 function parseOnline(usersOnline = {}, allContacts = {}) {
@@ -75,13 +88,15 @@ function parseOnline(usersOnline = {}, allContacts = {}) {
         dataconnect.usersContacts = allContacts;
         parentList.empty();
         for(let key in allContacts){
-            parentList.append('<p id="'+key+'"><button type="button" class="btn btn-xs btn-danger" ' +
-                              'data-id-omline="'+key+'">'+allContacts[key]+'</button></p>');
+            parentList.append('<p id="'+key+'" name="'+allContacts[key]+'"><button type="button" class="btn btn-xs btn-danger" ' +
+                              'data-id-online="'+key+'">'+allContacts[key]+'</button></p>');
         }
     }
     else {
         dataconnect.usersOnline = {};
         dataconnect.usersContacts = {};
+        dataconnect.activTouchName = '';
+        dataconnect.activTouchId = 0;
         parentList.empty();
         parentList.append('<p>There are no subscribers in the network</p>');
         return false;
@@ -98,7 +113,7 @@ function parseOnline(usersOnline = {}, allContacts = {}) {
 
 //Check users online every 10 seconds
 setInterval(function () {
-    sockConnect.send(prepareData(6, dataconnect.userId, 0, 'Get users online'));
+    sockConnect.send(prepareData(6, dataconnect.userId));
 }, 10000);
 
 //Parse list users online every 10 seconds
@@ -129,8 +144,8 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}) {
             }
             else {
                 dataconnect.usersContacts[key] = allContacts[key];
-                parentList.append('<p id="'+key+'"><button type="button" class="btn btn-xs btn-danger" ' +
-                                  'data-id-omline="'+key+'">'+allContacts[key]+'</button></p>');
+                parentList.append('<p id="'+key+'" name="'+allContacts[key]+'"><button type="button" class="btn btn-xs btn-danger" ' +
+                                  'data-id-online="'+key+'">'+allContacts[key]+'</button></p>');
             }
         }
     }
@@ -138,7 +153,7 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}) {
     dataconnect.usersOnline = usersOnline;
     for(let key in allContacts){
         if(key in usersOnline){
-            $('#'+key+'').find("button").removeClass('btn-danger').addClass('btn-success');;
+            $('#'+key+'').find("button").removeClass('btn-danger').addClass('btn-success');
         }
         else {
             $('#'+key+'').find("button").removeClass('btn-success').addClass('btn-danger');
@@ -150,15 +165,19 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}) {
 //Close connect with button
 $('#closeButton').on('click', function () {
     delete dataconnect.usersOnline[dataconnect.userId];
+    dataconnect.activTouchName = '';
+    dataconnect.activTouchId = 0;
     $('#onlineList').empty();
-    sockConnect.send(prepareData(3, dataconnect.userId, 0, 'byeoooo'));
+    sockConnect.send(prepareData(3, dataconnect.userId));
     sockConnect.close();
 });
 //Close brouser or page
 window.onbeforeunload = function () {
     delete dataconnect.usersOnline[dataconnect.userId];
+    dataconnect.activTouchName = '';
+    dataconnect.activTouchId = 0;
     $('#onlineList').empty();
-    sockConnect.send(prepareData(3, dataconnect.userId, 0, 'byeoooo'));
+    sockConnect.send(prepareData(3, dataconnect.userId));
     sockConnect.close();
 };
 
@@ -166,7 +185,10 @@ sockConnect.onclose = function(event) {
     if (this.readyState == 2 || this.readyState == 3) {
         $('#serverStatus').text('Server is not available...').css('color', 'red');
         console.log("Соединение Закрыто корректно...");
+        dataconnect.usersOnline = {}
         dataconnect.serverStatus = 0;
+        dataconnect.activTouchName = '';
+        dataconnect.activTouchId = 0;
         $('#onlineList').empty();
         $('#closeButton').hide();
     }

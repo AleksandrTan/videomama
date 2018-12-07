@@ -30,10 +30,10 @@ class Mainserver:
         print('Start server')
         i = 0
         while True:
-            print('Start thread')
             connection, address = self.mainsocket.accept()
             i += 1
             if address:
+                print('Start thread')
                 thread.start_new_thread(self.getalk, (connection, i))
 
     def getalk(self, connection, i):
@@ -57,7 +57,8 @@ class Mainserver:
                         # if reload brouser, close page or send "bye"
                         if dataClean['payload'] == b'\x03\xe9':
                             break
-                        data_payload = self.decode_json_payload(json.loads(dataClean['payload'].decode()))
+                        data_payload = json.loads(dataClean['payload'].decode())
+                        print(data_payload)
                         #if the user has finished work
                         if data_payload['status'] == 3:
                             self.thread_lock.acquire()
@@ -75,11 +76,12 @@ class Mainserver:
                                                                    self.onlinestorage.get_storage(), data_payload['status'])
                             self.thread_lock.release()
                             connection.send(self.send_frame(contacts_online, 0x1))
-                        #send a reply message
+                        #get message and send a reply message
                         if data_payload['status'] == 2:
                             try:
-                                message = '{"status":2, "message":{"1":"Привет Клиент", "2":"Hello"},' \
-                                      ' "subId":' + str(data_payload['subId']) + ', "subName":"' + data_payload['subName'] + '"}'
+                                message = '{"status":2, "message":{"1":"' + data_payload['message'] + '", "2":"Hello"},' \
+                                          ' "subId":' + str(data_payload['subId']) + ', "subName":"' + data_payload['subName'] + '"}'
+                                print(message)
                                 connection.send(self.send_frame(message.encode(), 0x1))
                             except ConnectionAbortedError as Error1:
                                 self.loger.set_log(Error1)
@@ -155,16 +157,14 @@ class Mainserver:
         connection.close()
         self.startserver()
 
-    def decode_json_payload(self, payload)->dict:
-        return {'status': payload['status'], 'userId': payload['userId'],
-                'subId': payload['subId'], 'subName': payload['subName'],
-                'mes': payload['mes'].encode()}
-
-    def analyze_status(self, data):
-        return json.loads(data.decode())['status']
+    # def decode_json_payload(self, payload)->dict:
+    #     return {'status': payload['status'], 'userId': payload['userId'],
+    #             'subId': payload['subId'], 'subName': payload['subName'],
+    #             'mes': payload['mes'].encode()}
 
     #return contacts user online
-    def contacts_online(self, user_contacts, contacts_online, status=0):
+
+    def contacts_online(self, user_contacts, contacts_online, status=0)->dict:
         all_contacts = {str(online[0]): online[1] for online in user_contacts}
         online = {str(online[0]): online[1] for online in user_contacts if online[0] in contacts_online}
         if online and status == 6:
