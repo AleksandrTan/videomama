@@ -9,16 +9,16 @@ import json
 
 from videomum.usercontacts.msdb.msdbcontacts import MySqlStorage
 from videomum.onlinestorage.liststorage import ListStorage
-from videomum.messagestorage.dictstorage.msststorage import MSMessagtStorage
+from videomum.messagestorage.mststorage.msststorage import MSMessagtStorage
 from videomum.logobject.logserver1 import LogServerOne
 
 
 class Mainserver:
     def __init__(self):
-        self.onlinestorage = ListStorage()
-        self.message_storage = MSMessagtStorage()
         self.myHost = '127.0.0.1'
         self.myPort = 50007
+        self.onlinestorage = ListStorage()
+        self.message_storage = MSMessagtStorage()
         self.magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
         self.mainsocket = socket(AF_INET, SOCK_STREAM)
         self.mainsocket.bind((self.myHost, self.myPort))
@@ -57,32 +57,30 @@ class Mainserver:
                         # if reload brouser, close page or send "bye"
                         if dataClean['payload'] == b'\x03\xe9':
                             break
-                        status = self.analyze_status(dataClean['payload'])
-                        userId = self.decode_json_userid(dataClean['payload'])
-                        message = self.decode_json_message(dataClean['payload'])
-                        print(status)
+                        data_payload = self.decode_json_payload(json.loads(dataClean['payload'].decode()))
                         #if the user has finished work
-                        if status == 3:
+                        if data_payload['status'] == 3:
                             self.thread_lock.acquire()
-                            self.onlinestorage.deleteuserid(userId)
+                            self.onlinestorage.deleteuserid(data_payload['userId'])
                             self.thread_lock.release()
                             connection.close()
                             break
                         # connections established, write user id to user online storage, send users contacts online
-                        if status == 1 or status == 4 or status == 6:
+                        if data_payload['status'] == 1 or data_payload['status'] == 4 or data_payload['status'] == 6:
                             #check if there is a user in the repository online
                             self.thread_lock.acquire()
-                            self.onlinestorage.checkuserid(userId)
+                            self.onlinestorage.checkuserid(data_payload['userId'])
                             #send user data online
-                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(userId),
-                                                                   self.onlinestorage.get_storage(), status)
+                            contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
+                                                                   self.onlinestorage.get_storage(), data_payload['status'])
                             self.thread_lock.release()
                             connection.send(self.send_frame(contacts_online, 0x1))
                         #send a reply message
-                        if status == 2:
+                        if data_payload['status'] == 2:
                             try:
-                                mes = '{"status":2, "message":{"1":"Привет Клиент", "2":"Hello"}, "id":2}'.encode()
-                                connection.send(self.send_frame(mes, 0x1))
+                                message = '{"status":2, "message":{"1":"Привет Клиент", "2":"Hello"},' \
+                                      ' "subId":' + str(data_payload['subId']) + ', "subName":"' + data_payload['subName'] + '"}'
+                                connection.send(self.send_frame(message.encode(), 0x1))
                             except ConnectionAbortedError as Error1:
                                 self.loger.set_log(Error1)
                                 break
@@ -157,11 +155,10 @@ class Mainserver:
         connection.close()
         self.startserver()
 
-    def decode_json_userid(self, data):
-       return json.loads(data.decode())['userId']
-
-    def decode_json_message(self, data):
-        return json.loads(data.decode())['mes'].encode()
+    def decode_json_payload(self, payload)->dict:
+        return {'status': payload['status'], 'userId': payload['userId'],
+                'subId': payload['subId'], 'subName': payload['subName'],
+                'mes': payload['mes'].encode()}
 
     def analyze_status(self, data):
         return json.loads(data.decode())['status']
@@ -176,8 +173,6 @@ class Mainserver:
             mes = '{"status":4, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
         else:
             mes = '{"status":5, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
-        print(online)
-        print(all_contacts)
         return mes.encode()
 
 #start server

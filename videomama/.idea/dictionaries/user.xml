@@ -28,6 +28,7 @@
       <w>stopclient</w>
       <w>stopserver</w>
       <w>subid</w>
+      <w>subname</w>
       <w>subuser</w>
       <w>threadid</w>
       <w>userid</w>

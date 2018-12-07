@@ -29,7 +29,7 @@ sockConnect.onmessage = function(event) {
     //Get message
     if(answer.status == 2){
         let text = $('#dataGet').text();
-        $('#dataGet').text(text + '\n' + 'Server:' + answer.message[1] + '\n');
+        $('#dataGet').text(text + '\n' + answer.subName + ' : ' + answer.message[1] + '\n');
     }
     //Get users online after establishing connection with servers
     else if((answer.status == 4) || (answer.status == 5)){
@@ -43,7 +43,8 @@ sockConnect.onmessage = function(event) {
 
 //Prepare data for sending
 function prepareData(status, idUser, idSub=0, message) {
-    return '{"status":'+status+', "userId":'+idUser+', "subId":'+idSub+', "mes":"'+message+'"}'
+    return '{"status":'+status+', "userId":'+idUser+', "subId":'+dataconnect.activTouchId+',' +
+           ' "mes":"'+message+'", "subName":"'+dataconnect.activTouchName+'"}'
 }
 
 function sendMessage() {
@@ -145,9 +146,6 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}) {
     }
     console.log(dataconnect.usersOnline);
 }
-
-
-
 
 //Close connect with button
 $('#closeButton').on('click', function () {
