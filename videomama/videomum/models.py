@@ -20,4 +20,12 @@ class ManageMessages(models.Manager):
 
 
 class Messages(models.Model):
-    pass
+    whom_id = models.IntegerField(default=0)
+    from_id = models.IntegerField(default=0)
+    from_name = models.CharField(max_length=100)
+    text_message = models.TextField(default='')
+    # False - not received, True - received
+    status_receiving = models.BooleanField(default=False)
+    time_create = models.TimeField(auto_now_add=True)
+    date_create = models.DateTimeField(auto_now_add=True)
+    objects = ManageMessages()
