@@ -26,6 +26,16 @@ class Contacts(Model):
     date_create = DateTimeField()
 
 
+class TimeFieldMy(TimeField):
+    def python_value(self, value):
+        return value.__str__()
+
+
+class DateTimeFieldMy(DateTimeField):
+    def python_value(self, value):
+        return value.__str__()
+
+
 class Messages(Model):
     class Meta:
         database = dbhandle
@@ -38,5 +48,5 @@ class Messages(Model):
     text_message = TextField(default='')
     # False - not received, True - received
     status_receiving = BooleanField(default=False)
-    time_create = TimeField(default=time.strftime("%H:%M:%S"))
-    date_create = DateTimeField(default=datetime.datetime.now())
+    time_create = TimeFieldMy(default=time.strftime("%H:%M:%S"), formats="%H:%M:%S")
+    date_create = DateTimeFieldMy(default=datetime.datetime.now(), formats="%Y-%m-%d")

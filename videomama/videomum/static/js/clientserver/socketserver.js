@@ -30,9 +30,9 @@ $('#onlineList').on('click', 'p', function () {
     dataconnect.activTouchId = this.id;
 });
 //Prepare data for message request
-function prepareDataMessage(status, idUser, subId=0, message='', subName=0) {
+function prepareDataMessage(status, idUser, subId=0, message='', userName='') {
     return '{"status":'+status+', "userId":'+idUser+', "subId":'+subId+',' +
-           ' "message":"'+message+'", "subName":"'+subName+'"}'
+           ' "message":"'+message+'", "userName":"'+userName+'"}'
 }
 
 function sendMessage() {
@@ -42,7 +42,7 @@ function sendMessage() {
     }
     let getText = $('#dataGet').text();
     if (dataconnect.activTouchId){
-        sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.activTouchName));
+        sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.userName));
         $('#dataGet').text(getText + '\n' + dataconnect.userName + ':' +sendText + '\n');
         $('#dataSend').val('');
     }
@@ -64,7 +64,7 @@ sockConnect.onmessage = function(event) {
     //Get message
     if(answer.status == 2){
         let text = $('#dataGet').text();
-        $('#dataGet').text(text + '\n' + answer.subName + ' : ' + answer.message[1] + '\n');
+        $('#dataGet').text(text + '\n' + answer.message[1]['from_name'] + ' : ' + answer.message[1]['text_message'] + '\n');
     }
     //Get users online after establishing connection with servers
     else if((answer.status == 4) || (answer.status == 5)){

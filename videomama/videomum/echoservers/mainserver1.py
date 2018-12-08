@@ -79,10 +79,12 @@ class Mainserver:
                         #get message and send a reply message
                         if data_payload['status'] == 2:
                             try:
+                                self.thread_lock.acquire()
                                 messages = self.message_storage.get_messages(data_payload['userId'])
-                                print(messages)
-                                message = '{"status":2, "message":{"1":"' + data_payload['message'] + '", "2":"Hello"},' \
-                                          ' "subId":' + str(data_payload['subId']) + ', "subName":"' + data_payload['subName'] + '"}'
+                                self.thread_lock.release()
+                                print(json.dumps(messages))
+                                message = '{"status":2, "message":' + json.dumps(messages) + ',' \
+                                          ' "subId":' + str(data_payload['subId']) + ', "userName":"' + data_payload['userName'] + '"}'
                                 print(message)
                                 connection.send(self.send_frame(message.encode(), 0x1))
                             except ConnectionAbortedError as Error1:

@@ -12,6 +12,10 @@ class SuperMesStorage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def update_messages(self, whom_id: int)->None:
+        pass
+
+    @abstractmethod
     def save_message(self, whom_id: int, text_message: str, from_id: int, from_name: str)->None:
         pass
 
@@ -21,4 +25,9 @@ class SuperMesStorage(metaclass=ABCMeta):
 
     @abstractmethod
     def count_message(self, whom_id: int)->int:
+        pass
+
+    #messages for the user from other contacts (id, number)
+    @abstractmethod
+    def get_other_messages(self, whom_id: int)->dict:
         pass
