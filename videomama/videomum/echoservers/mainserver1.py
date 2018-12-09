@@ -171,8 +171,10 @@ class Mainserver:
     def contacts_online(self, user_contacts, contacts_online, status=0)->dict:
         all_contacts = {str(online[0]): online[1] for online in user_contacts}
         online = {str(online[0]): online[1] for online in user_contacts if online[0] in contacts_online}
+        #every 10 seconds
         if online and status == 6:
             mes = '{"status":6, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
+
         elif online:
             mes = '{"status":4, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
         else:

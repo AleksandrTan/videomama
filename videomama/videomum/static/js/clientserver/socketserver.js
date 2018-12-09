@@ -23,7 +23,7 @@ sockConnect.onopen = function(ws) {
         }, 1000);
     }
 };
-
+//make contact active
 $('#onlineList').on('click', 'p', function () {
     $('#inTouch').text(this.getAttribute('name'));
     dataconnect.activTouchName = this.getAttribute('name');
@@ -57,6 +57,7 @@ $('html').keydown(function(e){
         sendMessage()
     }
 });
+
 //Get answer on server
 sockConnect.onmessage = function(event) {
     let answer = JSON.parse(event.data);
@@ -64,7 +65,16 @@ sockConnect.onmessage = function(event) {
     //Get message
     if(answer.status == 2){
         let text = $('#dataGet').text();
-        $('#dataGet').text(text + '\n' + answer.message[1]['from_name'] + ' : ' + answer.message[1]['text_message'] + '\n');
+        //if isset message(messages)
+        if (answer.message){
+            let new_messages = '';
+            for (let key in answer.message){
+                if (dataconnect.activTouchId == answer.message[key]['from_id'] ){
+                    new_messages = new_messages  + '\n' + answer.message[key]['from_name'] + ' : ' + answer.message[key]['text_message'] + '\n'
+                }
+            }
+            $('#dataGet').text(text + new_messages);
+        }
     }
     //Get users online after establishing connection with servers
     else if((answer.status == 4) || (answer.status == 5)){

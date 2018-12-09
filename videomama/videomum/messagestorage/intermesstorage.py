@@ -24,7 +24,7 @@ class SuperMesStorage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def count_message(self, whom_id: int)->int:
+    def count_message(self, whom_id: int)->dict:
         pass
 
     #messages for the user from other contacts (id, number)

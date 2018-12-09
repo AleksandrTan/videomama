@@ -1,7 +1,7 @@
 """
 Access to the repository of user messages based on the MySQL database
 """
-
+from peewee import fn
 from videomum.messagestorage.intermesstorage import SuperMesStorage
 from videomum.usercontacts.msdb.models import Messages
 
@@ -27,13 +27,16 @@ class MSMessagtStorage(SuperMesStorage):
     def delete_message(self, whom_id: int) -> None:
         pass
 
-    def count_message(self, whom_id: int) -> int:
-        pass
+    def count_message(self, whom_id: int) -> dict:
+        query = Messages.select(Messages, fn.COUNT(Messages.id).alias('mes_count'), Messages.from_id).where(Messages.whom_id == whom_id).group_by(Messages.from_id)
+        for user in query:
+            print('{0}={1}'.format(user.from_id, user.mes_count))
 
     def get_other_messages(self, whom_id: int)->dict:
         pass
 
 if __name__ == "__main__":
     data = MSMessagtStorage()
-    data.save_message(2, 'Hello!!!', 1, 'AlexTan')
-    data.get_messages(2)
+    #data.save_message(1, 'Hello!!!', 3, 'Ylia2018')
+    #data.get_messages(2)
+    data.count_message(1)
