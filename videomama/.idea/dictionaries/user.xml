@@ -20,6 +20,8 @@
       <w>mainserver</w>
       <w>mainsocket</w>
       <w>messagt</w>
+      <w>onbeforeunload</w>
+      <w>onclose</w>
       <w>onlinestorage</w>
       <w>opcode</w>
       <w>setsinglerecord</w>

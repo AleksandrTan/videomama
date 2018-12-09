@@ -78,11 +78,11 @@ sockConnect.onmessage = function(event) {
     }
     //Get users online after establishing connection with servers
     else if((answer.status == 4) || (answer.status == 5)){
-        parseOnline(answer.online, answer.allcontacts);
+        parseOnline(answer.online, answer.allcontacts, answer.isset_messages);
     }
     //Get users online every 10 seconds
     else if (answer.status == 6){
-        parseOnlineTimer(answer.online, answer.allcontacts);
+        parseOnlineTimer(answer.online, answer.allcontacts, answer.isset_messages);
     }
 };
 
@@ -92,14 +92,15 @@ function prepareData(status, idUser) {
 }
 
 //Parse list users online
-function parseOnline(usersOnline = {}, allContacts = {}) {
+function parseOnline(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     let parentList = $('#onlineList');
+    //if user have contacts
     if (!$.isEmptyObject(allContacts)){
         dataconnect.usersContacts = allContacts;
         parentList.empty();
         for(let key in allContacts){
             parentList.append('<p id="'+key+'" name="'+allContacts[key]+'"><button type="button" class="btn btn-xs btn-danger" ' +
-                              'data-id-online="'+key+'">'+allContacts[key]+'</button></p>');
+                              'data-id-online="'+key+'">'+allContacts[key]+'</button><span style="color:black;"></span></p>');
         }
     }
     else {
@@ -111,11 +112,20 @@ function parseOnline(usersOnline = {}, allContacts = {}) {
         parentList.append('<p>There are no subscribers in the network</p>');
         return false;
     }
+    //if user contacts online
     if (!$.isEmptyObject(usersOnline)){
         dataconnect.usersOnline = usersOnline;
         for(let key in usersOnline){
             if($("#" + key + "")){
                 $('#'+key+'').find("button").removeClass('btn-danger').addClass('btn-success');
+            }
+        }
+    }
+    //if user have some messages
+    if (!$.isEmptyObject(isset_messages)){
+        for(let key in isset_messages){
+            if(isset_messages[key]['mes_count'] != 0){
+                $('#'+key+'').find("span").text(isset_messages[key]['mes_count']);
             }
         }
     }
@@ -127,11 +137,11 @@ setInterval(function () {
 }, 10000);
 
 //Parse list users online every 10 seconds
-function parseOnlineTimer(usersOnline = {}, allContacts = {}) {
+function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     //if the user's contacts are not displayed yet
     // (for example, the user had no contacts and he established a new contact)
     if ($.isEmptyObject(dataconnect.usersContacts)){
-        parseOnline(usersOnline, allContacts);
+        parseOnline(usersOnline, allContacts, isset_messages);
         return;
     }
     //check displayed contacts (someone added, someone removed)
@@ -178,6 +188,7 @@ $('#closeButton').on('click', function () {
     dataconnect.activTouchName = '';
     dataconnect.activTouchId = 0;
     $('#onlineList').empty();
+    $('#dataGet').text('');
     sockConnect.send(prepareData(3, dataconnect.userId));
     sockConnect.close();
 });
@@ -187,6 +198,7 @@ window.onbeforeunload = function () {
     dataconnect.activTouchName = '';
     dataconnect.activTouchId = 0;
     $('#onlineList').empty();
+    $('#dataGet').text('');
     sockConnect.send(prepareData(3, dataconnect.userId));
     sockConnect.close();
 };
@@ -195,11 +207,12 @@ sockConnect.onclose = function(event) {
     if (this.readyState == 2 || this.readyState == 3) {
         $('#serverStatus').text('Server is not available...').css('color', 'red');
         console.log("Соединение Закрыто корректно...");
-        dataconnect.usersOnline = {}
+        dataconnect.usersOnline = {};
         dataconnect.serverStatus = 0;
         dataconnect.activTouchName = '';
         dataconnect.activTouchId = 0;
         $('#onlineList').empty();
+        $('#dataGet').text('');
         $('#closeButton').hide();
     }
 };

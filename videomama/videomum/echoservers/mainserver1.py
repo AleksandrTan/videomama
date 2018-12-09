@@ -34,9 +34,9 @@ class Mainserver:
             i += 1
             if address:
                 print('Start thread')
-                thread.start_new_thread(self.getalk, (connection, i))
+                thread.start_new_thread(self.getalk, (connection, ))
 
-    def getalk(self, connection, i):
+    def getalk(self, connection):
         while True:
             data = connection.recv(6024).strip().decode('latin-1')
             contacts_storage = MySqlStorage()
@@ -66,19 +66,18 @@ class Mainserver:
                             connection.close()
                             break
                         # connections established, write user id to user online storage, send users contacts online
+                        #check new messages
                         if data_payload['status'] == 1 or data_payload['status'] == 4 or data_payload['status'] == 6:
-                            #check if there is a user in the repository online
                             self.thread_lock.acquire()
+                            # check if there is a user in the repository online
                             self.onlinestorage.checkuserid(data_payload['userId'])
-                            #send user data online
+                            #user data (all contacts, contacts online)
                             contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
                                                                    self.onlinestorage.get_storage(), data_payload['status'])
-                            #check isset messages(from_id, count messages)
+                            #check isset new messages(from_id, count messages)
                             contacts_online['isset_messages'] = self.message_storage.get_other_messages(data_payload['userId'])
-                            print(json.dumps(contacts_online).encode())
-                            # if isset_messages:
-                            #     contacts_online = contacts_online + json.dumps(isset_messages).encode()
                             self.thread_lock.release()
+                            #send answer
                             connection.send(self.send_frame(json.dumps(contacts_online).encode(), 0x1))
                         #get message and send a reply message
                         if data_payload['status'] == 2:
