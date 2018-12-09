@@ -8,11 +8,11 @@ from abc import ABCMeta, abstractmethod
 class SuperMesStorage(metaclass=ABCMeta):
 
     @abstractmethod
-    def get_messages(self, whom_id: int)->dict:
+    def get_messages(self, whom_id: int, from_id: int)->dict:
         pass
 
     @abstractmethod
-    def update_messages(self, whom_id: int)->None:
+    def update_messages(self, whom_id: int, from_id: int)->None:
         pass
 
     @abstractmethod

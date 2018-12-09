@@ -28,6 +28,11 @@ $('#onlineList').on('click', 'p', function () {
     $('#inTouch').text(this.getAttribute('name'));
     dataconnect.activTouchName = this.getAttribute('name');
     dataconnect.activTouchId = this.id;
+    //get messages from contact
+    if (this.lastChild.innerHTML != ''){
+        $('#hellopreloader_preload').css({'display':'block', 'opacity': '0.5'});
+        sockConnect.send(prepareData(7, dataconnect.userId, dataconnect.activTouchId));
+    }
 });
 //Prepare data for message request
 function prepareDataMessage(status, idUser, subId=0, message='', userName='') {
@@ -84,13 +89,29 @@ sockConnect.onmessage = function(event) {
     else if (answer.status == 6){
         parseOnlineTimer(answer.online, answer.allcontacts, answer.isset_messages);
     }
+    else if (answer.status == 7){
+        showMesActivate(answer);
+    }
 };
 
 //Prepare data for service request
-function prepareData(status, idUser) {
-    return '{"status":'+status+', "userId":'+idUser+'}';
+function prepareData(status, idUser, idContact=0) {
+    return '{"status":'+status+', "userId":'+idUser+', "idContact":'+idContact+'}';
 }
-
+//Show messages from activate contact(status - 7)
+function showMesActivate(answer) {
+   $('#dataGet').text('');
+        //if isset message(messages)
+   if (answer.messages_contact){
+        let new_messages = '';
+        for (let key in answer.messages_contact){
+            new_messages = new_messages  + '\n' +answer.messages_contact[key]['from_name'] + ' : ' + answer.messages_contact[key]['text_message'] + '\n'
+        }
+        $('#dataGet').text(new_messages);
+        $('#hellopreloader_preload').css({'display':'none', 'opacity': '0.5'});
+        $("#" + answer.subId + "").find("span").text('');
+   }
+}
 //Parse list users online
 function parseOnline(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     let parentList = $('#onlineList');
@@ -124,7 +145,7 @@ function parseOnline(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     //if user have some messages
     if (!$.isEmptyObject(isset_messages)){
         for(let key in isset_messages){
-            if(isset_messages[key]['mes_count'] != 0){
+            if(isset_messages[key]['mes_count'] != 0 && key != dataconnect.activTouchId){
                 $('#'+key+'').find("span").text(isset_messages[key]['mes_count']);
             }
         }
@@ -182,7 +203,7 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
     //if user have some messages
     if (!$.isEmptyObject(isset_messages)){
         for(let key in isset_messages){
-            if(isset_messages[key]['mes_count'] != 0){
+            if(isset_messages[key]['mes_count'] != 0 && key != dataconnect.activTouchId ){
                 $('#'+key+'').find("span").text(isset_messages[key]['mes_count']);
             }
         }

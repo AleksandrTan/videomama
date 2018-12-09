@@ -8,14 +8,17 @@ from videomum.usercontacts.msdb.models import Messages
 
 class MSMessagtStorage(SuperMesStorage):
 
-    def get_messages(self, whom_id: int) -> dict:
+    def get_messages(self, whom_id: int, from_id: int) -> dict:
         messages = {m['id']: m for m in Messages.select().where((Messages.whom_id == whom_id)
-                                                                & (Messages.status_receiving == 0)).dicts()}
-        #self.update_messages(whom_id)
+                                                                & (Messages.status_receiving == 0)
+                                                                & (Messages.from_id == from_id)
+                                                                ).dicts()}
+        self.update_messages(whom_id, from_id)
         return messages
 
-    def update_messages(self, whom_id: int)->None:
-        messages = Messages.select().where((Messages.whom_id == whom_id) & (Messages.status_receiving == 0))
+    def update_messages(self, whom_id: int, from_id: int)->None:
+        messages = Messages.select().where((Messages.whom_id == whom_id) & (Messages.status_receiving == 0)
+                                           & (Messages.from_id == from_id))
         for mes in messages:
             mes.status_receiving = 1
             mes.save()

@@ -93,6 +93,17 @@ class Mainserver:
                             except ConnectionAbortedError as Error1:
                                 self.loger.set_log(Error1)
                                 break
+                        # send messages from active contact
+                        if data_payload['status'] == 7:
+                            try:
+                                self.thread_lock.acquire()
+                                messages = self.message_storage.get_messages(data_payload['userId'], data_payload['idContact'])
+                                self.thread_lock.release()
+                                message = {"status": 7, "messages_contact": messages, "subId": str(data_payload['idContact'])}
+                                connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
+                            except ConnectionAbortedError as Error7:
+                                self.loger.set_log(Error7)
+                                break
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
                         break
