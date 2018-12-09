@@ -179,6 +179,14 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
             $('#'+key+'').find("button").removeClass('btn-success').addClass('btn-danger');
         }
     }
+    //if user have some messages
+    if (!$.isEmptyObject(isset_messages)){
+        for(let key in isset_messages){
+            if(isset_messages[key]['mes_count'] != 0){
+                $('#'+key+'').find("span").text(isset_messages[key]['mes_count']);
+            }
+        }
+    }
     console.log(dataconnect.usersOnline);
 }
 

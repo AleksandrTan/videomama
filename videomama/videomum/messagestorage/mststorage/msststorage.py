@@ -31,9 +31,8 @@ class MSMessagtStorage(SuperMesStorage):
         pass
 
     def get_other_messages(self, whom_id: int)->dict:
-        return {m['from_id']: m for m in Messages.select(fn.COUNT(Messages.id).alias('mes_count'),
-                                                         Messages.from_id).where(Messages.whom_id == whom_id).
-                                                         group_by(Messages.from_id).dicts()}
+        return {m['from_id']: m for m in Messages.select(fn.COUNT(Messages.id).alias('mes_count'), Messages.from_id).
+            where((Messages.whom_id == whom_id) & (Messages.status_receiving == 0)).group_by(Messages.from_id).dicts()}
 
 if __name__ == "__main__":
     data = MSMessagtStorage()
