@@ -58,7 +58,6 @@ class Mainserver:
                         if dataClean['payload'] == b'\x03\xe9':
                             break
                         data_payload = json.loads(dataClean['payload'].decode())
-                        print(data_payload)
                         #if the user has finished work
                         if data_payload['status'] == 3:
                             self.thread_lock.acquire()
@@ -74,18 +73,23 @@ class Mainserver:
                             #send user data online
                             contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
                                                                    self.onlinestorage.get_storage(), data_payload['status'])
+                            #check isset messages(from_id, count messages)
+                            contacts_online['isset_messages'] = self.message_storage.get_other_messages(data_payload['userId'])
+                            print(json.dumps(contacts_online).encode())
+                            # if isset_messages:
+                            #     contacts_online = contacts_online + json.dumps(isset_messages).encode()
                             self.thread_lock.release()
-                            connection.send(self.send_frame(contacts_online, 0x1))
+                            connection.send(self.send_frame(json.dumps(contacts_online).encode(), 0x1))
                         #get message and send a reply message
                         if data_payload['status'] == 2:
                             try:
                                 self.thread_lock.acquire()
                                 messages = self.message_storage.get_messages(data_payload['userId'])
                                 self.thread_lock.release()
-                                print(json.dumps(messages))
+                                print(json.dumps(messages), 3)
                                 message = '{"status":2, "message":' + json.dumps(messages) + ',' \
                                           ' "subId":' + str(data_payload['subId']) + ', "userName":"' + data_payload['userName'] + '"}'
-                                print(message)
+                                print(message, 4)
                                 connection.send(self.send_frame(message.encode(), 0x1))
                             except ConnectionAbortedError as Error1:
                                 self.loger.set_log(Error1)
@@ -167,19 +171,31 @@ class Mainserver:
     #             'mes': payload['mes'].encode()}
 
     #return contacts user online
+    # def contacts_online(self, user_contacts, contacts_online, status=0)->dict:
+    #     all_contacts = {str(online[0]): online[1] for online in user_contacts}
+    #     online = {str(online[0]): online[1] for online in user_contacts if online[0] in contacts_online}
+    #     #Get users online every 10 seconds
+    #     if online and status == 6:
+    #         mes = '{"status":6, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
+    #     #Get users online after establishing connection with servers
+    #     elif online:
+    #         mes = '{"status":4, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
+    #     else:
+    #         mes = '{"status":5, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
+    #     return mes.encode()
 
     def contacts_online(self, user_contacts, contacts_online, status=0)->dict:
         all_contacts = {str(online[0]): online[1] for online in user_contacts}
         online = {str(online[0]): online[1] for online in user_contacts if online[0] in contacts_online}
-        #every 10 seconds
+        #Get users online every 10 seconds
         if online and status == 6:
-            mes = '{"status":6, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
-
+            mes = {"status": 6, "online": online, "allcontacts": all_contacts, "id": 0}
+        #Get users online after establishing connection with servers
         elif online:
-            mes = '{"status":4, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
+            mes = {"status": 4, "online": online, "allcontacts": all_contacts, "id": 0}
         else:
-            mes = '{"status":5, "online":' + json.dumps(online) + ', "allcontacts":' + json.dumps(all_contacts) + ', "id":0}'
-        return mes.encode()
+            mes = {"status": 5, "online": online, "allcontacts": all_contacts, "id": 0}
+        return mes
 
 #start server
 if __name__ == '__main__':
