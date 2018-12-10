@@ -8,9 +8,9 @@ function getSocketConnect(){
     let myPort = 50007;
     return new WebSocket("ws://"+myHost+":"+myPort);
 }
-//Create socket
+//Create socket object
 let sockConnect = getSocketConnect();
-
+//open connection
 sockConnect.onopen = function(ws) {
     console.log("Соединение открыто...");
     if(this.readyState == 1){
@@ -39,18 +39,27 @@ function prepareDataMessage(status, idUser, subId=0, message='', userName='') {
     return '{"status":'+status+', "userId":'+idUser+', "subId":'+subId+',' +
            ' "message":"'+message+'", "userName":"'+userName+'"}'
 }
-
+//send message
 function sendMessage() {
-    let sendText = $('#dataSend').val();
-    if (!sendText){
-        return
-    }
-    let getText = $('#dataGet').text();
-    if (dataconnect.activTouchId){
-        sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.userName));
-        $('#dataGet').text(getText + '\n' + dataconnect.userName + ':' +sendText + '\n');
+    let sendText =  $('#dataSend').val();
+    if (dataconnect.activTouchId && sendText){
+        let getText = $('#dataGet').text();
+        //sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.userName));
+        $('#dataGet').text(getText + '\n' + currentTime() + ' ' + dataconnect.userName + ':' +sendText + '\n');
         $('#dataSend').val('');
     }
+    else {
+        return false;
+    }
+}
+
+//current time
+function currentTime(){
+    let Data = new Date();
+    let Hour = Data.getHours();
+    let Minutes = Data.getMinutes();
+    let Seconds = Data.getSeconds();
+    return ''+Hour+':'+Minutes+':'+Seconds;
 }
 //Send with button
 $('#sendButton').on('click', function () {
@@ -105,7 +114,8 @@ function showMesActivate(answer) {
    if (answer.messages_contact){
         let new_messages = '';
         for (let key in answer.messages_contact){
-            new_messages = new_messages  + '\n' +answer.messages_contact[key]['from_name'] + ' : ' + answer.messages_contact[key]['text_message'] + '\n'
+            new_messages = new_messages  + '\n' + answer.messages_contact[key]['time_create'] + ' '
+                + answer.messages_contact[key]['from_name'] + ' : ' + answer.messages_contact[key]['text_message'] + '\n'
         }
         $('#dataGet').text(new_messages);
         $('#hellopreloader_preload').css({'display':'none', 'opacity': '0.5'});
@@ -152,12 +162,12 @@ function parseOnline(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     }
 }
 
-//Check users online every 10 seconds
+//Check users online every 10 seconds(status - 6)
 setInterval(function () {
     sockConnect.send(prepareData(6, dataconnect.userId));
 }, 10000);
 
-//Parse list users online every 10 seconds
+//Parse list users online every 10 seconds(status - 6)
 function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     //if the user's contacts are not displayed yet
     // (for example, the user had no contacts and he established a new contact)
@@ -211,7 +221,8 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
     console.log(dataconnect.usersOnline);
 }
 
-//Close connect with button
+///////////------------------------Close connections-------------------------------------///
+//Close connect with button(status - 3)
 $('#closeButton').on('click', function () {
     delete dataconnect.usersOnline[dataconnect.userId];
     dataconnect.activTouchName = '';

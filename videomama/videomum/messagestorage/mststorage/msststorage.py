@@ -41,4 +41,5 @@ if __name__ == "__main__":
     data = MSMessagtStorage()
     #data.save_message(1, 'Hello!!!', 3, 'Ylia2018')
     #data.get_messages(2)
-    print(data.get_other_messages(1))
+    data.update_messages(1, 3)
+    #print(data.get_other_messages(1))
