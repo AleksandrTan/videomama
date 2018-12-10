@@ -25,6 +25,9 @@ sockConnect.onopen = function(ws) {
 };
 //make contact active
 $('#onlineList').on('click', 'p', function () {
+    if (this.id == dataconnect.activTouchId){
+        return false;
+    }
     $('#inTouch').text(this.getAttribute('name'));
     dataconnect.activTouchName = this.getAttribute('name');
     dataconnect.activTouchId = this.id;
