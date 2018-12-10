@@ -83,13 +83,11 @@ class Mainserver:
                         if data_payload['status'] == 2:
                             try:
                                 self.thread_lock.acquire()
-                                messages = self.message_storage.get_messages(data_payload['userId'])
+                                self.message_storage.save_message(data_payload['whom_id'], data_payload['text_message'],
+                                                                  data_payload['from_id'], data_payload['from_name'])
+
                                 self.thread_lock.release()
-                                print(json.dumps(messages), 3)
-                                message = '{"status":2, "message":' + json.dumps(messages) + ',' \
-                                          ' "subId":' + str(data_payload['subId']) + ', "userName":"' + data_payload['userName'] + '"}'
-                                print(message, 4)
-                                connection.send(self.send_frame(message.encode(), 0x1))
+                                #connection.send(self.send_frame(message.encode(), 0x1))
                             except ConnectionAbortedError as Error1:
                                 self.loger.set_log(Error1)
                                 break

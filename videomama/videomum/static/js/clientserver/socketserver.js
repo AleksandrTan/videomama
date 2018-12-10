@@ -28,6 +28,7 @@ $('#onlineList').on('click', 'p', function () {
     $('#inTouch').text(this.getAttribute('name'));
     dataconnect.activTouchName = this.getAttribute('name');
     dataconnect.activTouchId = this.id;
+    $('#dataGet').text('');
     //get messages from contact
     if (this.lastChild.innerHTML != ''){
         $('#hellopreloader_preload').css({'display':'block', 'opacity': '0.5'});
@@ -36,15 +37,15 @@ $('#onlineList').on('click', 'p', function () {
 });
 //Prepare data for message request
 function prepareDataMessage(status, idUser, subId=0, message='', userName='') {
-    return '{"status":'+status+', "userId":'+idUser+', "subId":'+subId+',' +
-           ' "message":"'+message+'", "userName":"'+userName+'"}'
+    return '{"status":'+status+', "from_id":'+idUser+', "whom_id":'+subId+',' +
+           ' "text_message":"'+message+'", "from_name":"'+userName+'"}'
 }
 //send message
 function sendMessage() {
     let sendText =  $('#dataSend').val();
     if (dataconnect.activTouchId && sendText){
         let getText = $('#dataGet').text();
-        //sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.userName));
+        sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.userName));
         $('#dataGet').text(getText + '\n' + currentTime() + ' ' + dataconnect.userName + ':' +sendText + '\n');
         $('#dataSend').val('');
     }
