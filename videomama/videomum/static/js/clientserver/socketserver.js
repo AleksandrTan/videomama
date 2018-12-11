@@ -196,7 +196,6 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
             }
         }
     }
-    console.log(dataconnect.usersOnline);
 }
 
 ////-------------------------------Periodic requests--------------------------------///
@@ -217,7 +216,6 @@ setInterval(function () {
 //Get server response
 sockConnect.onmessage = function(event) {
     let answer = JSON.parse(event.data);
-    console.log(answer);
     //Get message
     if(answer.status == 2){
         let text = $('#dataGet').text();

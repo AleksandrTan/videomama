@@ -43,6 +43,8 @@
                                             <tr>
                                                 <th>Server status</th>
                                                 <th>In touch</th>
+                                                <th>Audio call</th>
+                                                <th>Video call</th>
                                                 <th>User</th>
                                             </tr>
                                         </thead>
@@ -56,6 +58,18 @@
                                                 </td>
                                                 <td>
                                                     <p class="help-block" id="inTouch" style="font-weight:900; color: blue;"></p>
+                                                </td>
+                                                <td>
+                                                    <p class="help-block"></p>
+                                                    <button type="button" class="btn btn-xs btn-success">
+                                                        Audio call
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <p class="help-block"></p>
+                                                    <button type="button" class="btn btn-xs btn-success">
+                                                        Video call
+                                                    </button>
                                                 </td>
                                                 <td>
                                                     <p class="help-block" id="userName" style="font-weight:900; color: #5cb85c;">{{ user.username }}</p>
