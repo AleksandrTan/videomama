@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 from socket import *
+from time import sleep
 import hashlib
 import base64
 import struct
@@ -64,12 +66,22 @@ class Mainserver:
                                 self.onlinestorage.deleteuserid(data_payload['userId'])
                             connection.close()
                             break
-                        # connections established, write user id to user online storage, send users contacts online
-                        #check new messages
-                        if data_payload['status'] == 1 or data_payload['status'] == 4 or data_payload['status'] == 6:
+                        # connections established, write user id to user online storage
+                        if data_payload['status'] == 1:
                             with self.thread_lock:
                                 # check if there is a user in the repository online
+                                userId = data_payload['userId']
                                 self.onlinestorage.checkuserid(data_payload['userId'])
+                                #user data (all contacts, contacts online)
+                                contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
+                                                                       self.onlinestorage.get_storage(), data_payload['status'])
+                                #check isset new messages(from_id, count messages)
+                                contacts_online['isset_messages'] = self.message_storage.get_other_messages(data_payload['userId'])
+                            #send answer
+                            connection.send(self.send_frame(json.dumps(contacts_online).encode(), 0x1))
+                        # send users contacts online, check new messages
+                        if data_payload['status'] == 4 or data_payload['status'] == 6:
+                            with self.thread_lock:
                                 #user data (all contacts, contacts online)
                                 contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
                                                                        self.onlinestorage.get_storage(), data_payload['status'])
@@ -89,6 +101,7 @@ class Mainserver:
                                 break
                         # send messages from active contact
                         if data_payload['status'] == 7:
+                            idContact = data_payload['idContact']
                             try:
                                 with self.thread_lock:
                                     messages = self.message_storage.get_messages(data_payload['userId'], data_payload['idContact'])
@@ -96,6 +109,18 @@ class Mainserver:
                                 connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
                             except ConnectionAbortedError as Error7:
                                 self.loger.set_log(Error7)
+                                break
+                        # check messages from active contact
+                        if data_payload['status'] == 8:
+                            try:
+                                with self.thread_lock:
+                                    messages = self.message_storage.get_messages(data_payload['userId'],
+                                                                                 data_payload['idContact'])
+                                message = {"status": 8, "messages_contact": messages,
+                                           "subId": str(data_payload['idContact'])}
+                                connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
+                            except ConnectionAbortedError as Error8:
+                                self.loger.set_log(Error8)
                                 break
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
@@ -180,6 +205,11 @@ class Mainserver:
         else:
             mes = {"status": 5, "online": online, "allcontacts": all_contacts, "id": 0}
         return mes
+
+    def get_messages(self, userid=1, idcontact=1):
+        while True:
+            sleep(5)
+            print(userid, idcontact)
 
 #start server
 if __name__ == '__main__':

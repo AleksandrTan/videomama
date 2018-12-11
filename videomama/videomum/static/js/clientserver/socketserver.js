@@ -33,10 +33,8 @@ $('#onlineList').on('click', 'p', function () {
     dataconnect.activTouchId = this.id;
     $('#dataGet').text('');
     //get messages from contact
-    if (this.lastChild.innerHTML != ''){
-        $('#hellopreloader_preload').css({'display':'block', 'opacity': '0.5'});
-        sockConnect.send(prepareData(7, dataconnect.userId, dataconnect.activTouchId));
-    }
+    $('#hellopreloader_preload').css({'display':'block', 'opacity': '0.5'});
+    sockConnect.send(prepareData(7, dataconnect.userId, dataconnect.activTouchId));
 });
 //Prepare data for message request
 function prepareDataMessage(status, idUser, subId=0, message='', userName='') {
@@ -49,14 +47,13 @@ function sendMessage() {
     if (dataconnect.activTouchId && sendText){
         let getText = $('#dataGet').text();
         sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.userName));
-        $('#dataGet').text(getText + '\n' + currentTime() + ' ' + dataconnect.userName + ':' +sendText + '\n');
+        $('#dataGet').text(getText + currentTime() + ' ' + dataconnect.userName + ':' +sendText + '\n');
         $('#dataSend').val('');
     }
     else {
         return false;
     }
 }
-
 //current time
 function currentTime(){
     let Data = new Date();
@@ -75,38 +72,6 @@ $('html').keydown(function(e){
         sendMessage()
     }
 });
-
-//Get answer on server
-sockConnect.onmessage = function(event) {
-    let answer = JSON.parse(event.data);
-    console.log(answer);
-    //Get message
-    if(answer.status == 2){
-        let text = $('#dataGet').text();
-        //if isset message(messages)
-        if (answer.message){
-            let new_messages = '';
-            for (let key in answer.message){
-                if (dataconnect.activTouchId == answer.message[key]['from_id'] ){
-                    new_messages = new_messages  + '\n' + answer.message[key]['from_name'] + ' : ' + answer.message[key]['text_message'] + '\n'
-                }
-            }
-            $('#dataGet').text(text + new_messages);
-        }
-    }
-    //Get users online after establishing connection with servers
-    else if((answer.status == 4) || (answer.status == 5)){
-        parseOnline(answer.online, answer.allcontacts, answer.isset_messages);
-    }
-    //Get users online every 10 seconds
-    else if (answer.status == 6){
-        parseOnlineTimer(answer.online, answer.allcontacts, answer.isset_messages);
-    }
-    else if (answer.status == 7){
-        showMesActivate(answer);
-    }
-};
-
 //Prepare data for service request
 function prepareData(status, idUser, idContact=0) {
     return '{"status":'+status+', "userId":'+idUser+', "idContact":'+idContact+'}';
@@ -118,7 +83,7 @@ function showMesActivate(answer) {
    if (answer.messages_contact){
         let new_messages = '';
         for (let key in answer.messages_contact){
-            new_messages = new_messages  + '\n' + answer.messages_contact[key]['time_create'] + ' '
+            new_messages = new_messages  + answer.messages_contact[key]['time_create'] + ' '
                 + answer.messages_contact[key]['from_name'] + ' : ' + answer.messages_contact[key]['text_message'] + '\n'
         }
         $('#dataGet').text(new_messages);
@@ -126,6 +91,21 @@ function showMesActivate(answer) {
         $("#" + answer.subId + "").find("span").text('');
    }
 }
+//Show messages from active contact(status - 8)
+function showMesActive(answer) {
+   let isset_text = $('#dataGet').text();
+        //if isset message(messages)
+   if (answer.messages_contact){
+        let new_messages = '';
+        for (let key in answer.messages_contact){
+            new_messages = new_messages  + answer.messages_contact[key]['time_create'] + ' '
+                + answer.messages_contact[key]['from_name'] + ' : ' + answer.messages_contact[key]['text_message'] + '\n'
+        }
+        $('#dataGet').text(isset_text + new_messages);
+        $('#hellopreloader_preload').css({'display':'none', 'opacity': '0.5'});
+   }
+}
+
 //Parse list users online
 function parseOnline(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     let parentList = $('#onlineList');
@@ -166,11 +146,13 @@ function parseOnline(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     }
 }
 
+////-------------------------------Periodic requests--------------------------------///
 //Check users online every 10 seconds(status - 6)
 setInterval(function () {
-    sockConnect.send(prepareData(6, dataconnect.userId));
+    if (sockConnect.readyState == 1) {
+        sockConnect.send(prepareData(6, dataconnect.userId));
+    }
 }, 10000);
-
 //Parse list users online every 10 seconds(status - 6)
 function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     //if the user's contacts are not displayed yet
@@ -224,6 +206,48 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
     }
     console.log(dataconnect.usersOnline);
 }
+//Check messages from active contact every 5 seconds(status  - 8)
+setInterval(function () {
+    if (sockConnect.readyState == 1 && dataconnect.activTouchId) {
+        sockConnect.send(prepareData(8, dataconnect.userId, dataconnect.activTouchId));
+    }
+}, 5000);
+
+
+////---------------------------------Server response------------------------------------///
+//Get server response
+sockConnect.onmessage = function(event) {
+    let answer = JSON.parse(event.data);
+    console.log(answer);
+    //Get message
+    if(answer.status == 2){
+        let text = $('#dataGet').text();
+        //if isset message(messages)
+        if (answer.message){
+            let new_messages = '';
+            for (let key in answer.message){
+                if (dataconnect.activTouchId == answer.message[key]['from_id'] ){
+                    new_messages = new_messages  + '\n' + answer.message[key]['from_name'] + ' : ' + answer.message[key]['text_message'] + '\n'
+                }
+            }
+            $('#dataGet').text(text + new_messages);
+        }
+    }
+    //Get users online after establishing connection with servers
+    else if((answer.status == 4) || (answer.status == 5)){
+        parseOnline(answer.online, answer.allcontacts, answer.isset_messages);
+    }
+    //Get users online every 10 seconds
+    else if (answer.status == 6){
+        parseOnlineTimer(answer.online, answer.allcontacts, answer.isset_messages);
+    }
+    else if (answer.status == 7){
+        showMesActivate(answer);
+    }
+    else if (answer.status == 8){
+        showMesActive(answer);
+    }
+};
 
 ///////////------------------------Close connections-------------------------------------///
 //Close connect with button(status - 3)
