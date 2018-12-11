@@ -36,6 +36,17 @@ $('#onlineList').on('click', 'p', function () {
     $('#hellopreloader_preload').css({'display':'block', 'opacity': '0.5'});
     sockConnect.send(prepareData(7, dataconnect.userId, dataconnect.activTouchId));
 });
+//Send with button
+$('#sendButton').on('click', function () {
+   sendMessage()
+});
+//Send with "Enter" key
+$('html').keydown(function(e){
+  if (e.keyCode == 13) {
+        sendMessage()
+    }
+});
+///--------------------------------------Services functions---------------------------///
 //Prepare data for message request
 function prepareDataMessage(status, idUser, subId=0, message='', userName='') {
     return '{"status":'+status+', "from_id":'+idUser+', "whom_id":'+subId+',' +
@@ -62,16 +73,6 @@ function currentTime(){
     let Seconds = Data.getSeconds();
     return ''+Hour+':'+Minutes+':'+Seconds;
 }
-//Send with button
-$('#sendButton').on('click', function () {
-   sendMessage()
-});
-//Send with "Enter" key
-$('html').keydown(function(e){
-  if (e.keyCode == 13) {
-        sendMessage()
-    }
-});
 //Prepare data for service request
 function prepareData(status, idUser, idContact=0) {
     return '{"status":'+status+', "userId":'+idUser+', "idContact":'+idContact+'}';
@@ -105,7 +106,6 @@ function showMesActive(answer) {
         $('#hellopreloader_preload').css({'display':'none', 'opacity': '0.5'});
    }
 }
-
 //Parse list users online
 function parseOnline(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     let parentList = $('#onlineList');
@@ -145,14 +145,6 @@ function parseOnline(usersOnline = {}, allContacts = {}, isset_messages = {}) {
         }
     }
 }
-
-////-------------------------------Periodic requests--------------------------------///
-//Check users online every 10 seconds(status - 6)
-setInterval(function () {
-    if (sockConnect.readyState == 1) {
-        sockConnect.send(prepareData(6, dataconnect.userId));
-    }
-}, 10000);
 //Parse list users online every 10 seconds(status - 6)
 function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {}) {
     //if the user's contacts are not displayed yet
@@ -206,6 +198,14 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
     }
     console.log(dataconnect.usersOnline);
 }
+
+////-------------------------------Periodic requests--------------------------------///
+//Check users online every 10 seconds(status - 6)
+setInterval(function () {
+    if (sockConnect.readyState == 1) {
+        sockConnect.send(prepareData(6, dataconnect.userId));
+    }
+}, 10000);
 //Check messages from active contact every 5 seconds(status  - 8)
 setInterval(function () {
     if (sockConnect.readyState == 1 && dataconnect.activTouchId) {
@@ -213,8 +213,7 @@ setInterval(function () {
     }
 }, 5000);
 
-
-////---------------------------------Server response------------------------------------///
+////---------------------------------Get Server response------------------------------------///
 //Get server response
 sockConnect.onmessage = function(event) {
     let answer = JSON.parse(event.data);
