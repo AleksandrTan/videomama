@@ -31,7 +31,7 @@ class TimeFieldMy(TimeField):
         return value.__str__()
 
 
-class DateTimeFieldMy(DateTimeField):
+class DateFieldMy(DateTimeField):
     def python_value(self, value):
         return value.__str__()
 
@@ -49,4 +49,4 @@ class Messages(Model):
     # False - not received, True - received
     status_receiving = BooleanField(default=False)
     time_create = TimeFieldMy(default=time.strftime("%H:%M:%S"), formats="%H:%M:%S")
-    date_create = DateTimeFieldMy(default=datetime.datetime.now, formats="%Y-%m-%d")
+    date_create = DateFieldMy(default=datetime.date.today(), formats="%Y-%m-%d")

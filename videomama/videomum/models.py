@@ -27,5 +27,5 @@ class Messages(models.Model):
     # False - not received, True - received
     status_receiving = models.BooleanField(default=False)
     time_create = models.TimeField(auto_now_add=True)
-    date_create = models.DateTimeField(auto_now_add=True)
+    date_create = models.DateField(auto_now_add=True)
     objects = ManageMessages()

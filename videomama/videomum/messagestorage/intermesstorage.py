@@ -31,3 +31,7 @@ class SuperMesStorage(metaclass=ABCMeta):
     @abstractmethod
     def get_other_messages(self, whom_id: int)->dict:
         pass
+
+    @abstractmethod
+    def get_history_message(self, user_id: int, contact_id: int)->dict:
+        pass

@@ -101,8 +101,12 @@ class Mainserver:
                         if data_payload['status'] == 7:
                             try:
                                 with self.thread_lock:
-                                    messages = self.message_storage.get_messages(data_payload['userId'], data_payload['idContact'])
-                                message = {"status": 7, "messages_contact": messages, "subId": str(data_payload['idContact'])}
+                                    messages = self.message_storage.get_messages(data_payload['userId'],
+                                                                                 data_payload['idContact'])
+                                    messages_history = self.message_storage.get_history_message(data_payload['userId'],
+                                                                                                data_payload['idContact'])
+                                message = {"status": 7, "messages_contact": messages,
+                                           "subId": str(data_payload['idContact']), 'message_history': messages_history}
                                 connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
                             except ConnectionAbortedError as Error7:
                                 self.loger.set_log(Error7)

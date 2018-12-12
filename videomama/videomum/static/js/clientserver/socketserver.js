@@ -104,7 +104,19 @@ function showMesActive(answer) {
                 + answer.messages_contact[key]['from_name'] + ' : ' + answer.messages_contact[key]['text_message'] + '\n'
         }
         $('#dataGet').text(isset_text + new_messages);
-        $('#hellopreloader_preload').css({'display':'none', 'opacity': '0.5'});
+   }
+}
+//Show history messages
+function showHistory(answer) {
+    let isset_text = $('#dataGet').text();
+        //if isset message(messages)
+   if (answer.message_history){
+        let new_messages = '';
+        for (let key in answer.message_history){
+            new_messages = new_messages  + answer.message_history[key]['time_create'] + ' '
+                + answer.message_history[key]['from_name'] + ' : ' + answer.message_history[key]['text_message'] + '\n'
+        }
+        $('#dataGet').text(isset_text + new_messages);
    }
 }
 //Parse list users online
@@ -241,6 +253,8 @@ sockConnect.onmessage = function(event) {
     }
     else if (answer.status == 7){
         showMesActivate(answer);
+        showHistory(answer);
+        $('#hellopreloader_preload').css({'display':'none', 'opacity': '0.5'});
     }
     else if (answer.status == 8){
         showMesActive(answer);

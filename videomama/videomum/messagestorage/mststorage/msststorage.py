@@ -2,7 +2,8 @@
 Access to the repository of user messages based on the MySQL database
 """
 import time
-from peewee import fn
+from datetime import date
+from peewee import fn, SQL
 from videomum.messagestorage.intermesstorage import SuperMesStorage
 from videomum.usercontacts.msdb.models import Messages
 
@@ -37,11 +38,26 @@ class MSMessagtStorage(SuperMesStorage):
 
     def get_other_messages(self, whom_id: int)->dict:
         return {m['from_id']: m for m in Messages.select(fn.COUNT(Messages.id).alias('mes_count'), Messages.from_id).
-            where((Messages.whom_id == whom_id) & (Messages.status_receiving == 0)).group_by(Messages.from_id).dicts()}
+                where((Messages.whom_id == whom_id) & (Messages.status_receiving == 0)).group_by(Messages.from_id).dicts()}
+
+    def get_history_message(self, user_id: int, contact_id: int)->dict:
+        user_messages = Messages.select(Messages.id, Messages.from_name, Messages.time_create, Messages.text_message).\
+            where((Messages.whom_id == contact_id)
+                  & (Messages.from_id == user_id)
+                  & (Messages.status_receiving == 1)
+                  & (Messages.date_create == date.today()))
+
+        contact_message = Messages.select(Messages.id, Messages.from_name, Messages.time_create, Messages.text_message).\
+            where((Messages.whom_id == user_id) & (Messages.from_id == contact_id)
+                  & (Messages.status_receiving == 1)
+                  & (Messages.date_create == date.today()))
+        query = (user_messages | contact_message).order_by(SQL('time_create')).dicts()
+        return {m['id']: m for m in query}
 
 if __name__ == "__main__":
     data = MSMessagtStorage()
     #data.save_message(1, 'Hello!!!', 3, 'Ylia2018')
     #data.get_messages(2)
-    data.update_messages(1, 3)
+    #data.update_messages(1, 3)
     #print(data.get_other_messages(1))
+    print(data.get_history_message(1, 2))
