@@ -49,4 +49,4 @@ class Messages(Model):
     # False - not received, True - received
     status_receiving = BooleanField(default=False)
     time_create = TimeFieldMy(default=time.strftime("%H:%M:%S"), formats="%H:%M:%S")
-    date_create = DateTimeFieldMy(default=datetime.datetime.now(), formats="%Y-%m-%d")
+    date_create = DateTimeFieldMy(default=datetime.datetime.now, formats="%Y-%m-%d")

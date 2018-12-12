@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from socket import *
-from time import sleep
 import hashlib
 import base64
 import struct
@@ -70,7 +69,6 @@ class Mainserver:
                         if data_payload['status'] == 1:
                             with self.thread_lock:
                                 # check if there is a user in the repository online
-                                userId = data_payload['userId']
                                 self.onlinestorage.checkuserid(data_payload['userId'])
                                 #user data (all contacts, contacts online)
                                 contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
@@ -101,7 +99,6 @@ class Mainserver:
                                 break
                         # send messages from active contact
                         if data_payload['status'] == 7:
-                            idContact = data_payload['idContact']
                             try:
                                 with self.thread_lock:
                                     messages = self.message_storage.get_messages(data_payload['userId'], data_payload['idContact'])
@@ -205,11 +202,6 @@ class Mainserver:
         else:
             mes = {"status": 5, "online": online, "allcontacts": all_contacts, "id": 0}
         return mes
-
-    def get_messages(self, userid=1, idcontact=1):
-        while True:
-            sleep(5)
-            print(userid, idcontact)
 
 #start server
 if __name__ == '__main__':

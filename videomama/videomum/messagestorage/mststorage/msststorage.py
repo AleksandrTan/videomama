@@ -1,6 +1,7 @@
 """
 Access to the repository of user messages based on the MySQL database
 """
+import time
 from peewee import fn
 from videomum.messagestorage.intermesstorage import SuperMesStorage
 from videomum.usercontacts.msdb.models import Messages
@@ -24,7 +25,8 @@ class MSMessagtStorage(SuperMesStorage):
             mes.save()
 
     def save_message(self, whom_id: int, text_message: str, from_id: int, from_name: str) -> None:
-        message = Messages.create(whom_id=whom_id, text_message=text_message, from_id=from_id, from_name=from_name)
+        message = Messages.create(whom_id=whom_id, text_message=text_message, from_id=from_id,
+                                  from_name=from_name, time_create=time.strftime("%H:%M:%S"))
         message.save()
 
     def delete_message(self, whom_id: int) -> None:

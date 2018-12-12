@@ -62,6 +62,7 @@ function sendMessage() {
         $('#dataSend').val('');
     }
     else {
+        $('#myModal').modal();
         return false;
     }
 }
