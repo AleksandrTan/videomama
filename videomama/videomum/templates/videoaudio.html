@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<video id="video" src="" autoplay ></video>
+<video id="blob-video" controls></video>
+<video id="blobs-video" autoplay></video>
+<button id="record" name="button">start recording</button>
+<button id="stop" name="button">stop recording</button>
+<script>
+    (function () {
+    var recorder;
+    var mediaStream;
+    var fileName;
+    var connection;
+    var reader = new FileReader();
+    var formData = new FormData();
+
+    //reader.readAsArrayBuffer(blob);
+
+    function getVideoStream() {
+        var config = { video: true, audio: false };
+        var userstream;
+        navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: true
+        })
+        .then(function (stream) {
+            mediaStream = stream;
+            videoStream = stream;
+            let a = document.getElementById('video');
+            a.srcObject = stream;
+            //document.getElementsByid('video')[0].setAttribute('src', window.URL.createObjectURL(mediaStream));
+            getRecorder();
+        })
+    };
+
+    function getRecorder() {
+        var options = { mimeType: 'video/webm', audioBitsPerSecond: 128000 };
+        recorder = new MediaRecorder(mediaStream, options);
+        recorder.ondataavailable = videoDataHandler;
+    };
+
+    //function videoDataHandler(event) {
+      //  var reader = new FileReader();
+      //  reader.readAsArrayBuffer(event.data);
+       // reader.onloadend = function (event) {
+       //     connection.send(reader.result);
+       // };
+    //};
+    function videoDataHandler(event) {
+
+       var encodeData = new Blob([event.data], { type: 'video/webm' });
+       formData.append("blob", encodeData);
+
+    };
+
+    function getWebSocket() {
+        var websocketEndpoint = 'ws://localhost:7000';
+        connection = new WebSocket(websocketEndpoint);
+        connection.binaryType = 'arraybuffer';
+        connection.onmessage = function (message) {
+            fileName = message.data;
+        }
+    };
+
+    function updateVideoFile() {
+        var video = document.getElementById('recorded-video');
+        var fileLocation = 'http://localhost:7000/uploads/'
+            + fileName + '.webm';
+        video.setAttribute('src', fileLocation);
+    };
+
+    var startButton = document.getElementById('record');
+    startButton.addEventListener('click', function (e) {
+        recorder.start(1000);
+    });
+
+    var stopButton = document.getElementById('stop');
+    stopButton.addEventListener('click', function (e) {
+        recorder.stop();
+        console.log(formData);
+        //updateVideoFile();
+    });
+
+    getVideoStream();
+    //getWebSocket();
+})();
+</script>
+</body>
+</html>

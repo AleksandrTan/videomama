@@ -54,7 +54,8 @@ class Mainserver:
                 self.handshake(key, connection)
                 while True:
                     try:
-                        dataClean = self.decode_frame(connection.recv(6024))
+                        dataGet = connection.recv(6024)
+                        dataClean = self.decode_frame(dataGet)
                         # if reload brouser, close page or send "bye"
                         if dataClean['payload'] == b'\x03\xe9':
                             break
@@ -123,6 +124,7 @@ class Mainserver:
                             except ConnectionAbortedError as Error8:
                                 self.loger.set_log(Error8)
                                 break
+
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
                         break

@@ -6,7 +6,9 @@
 function getSocketConnect(){
     let myHost = '127.0.0.1';
     let myPort = 50007;
-    return new WebSocket("ws://"+myHost+":"+myPort);
+    let connection = new WebSocket("ws://"+myHost+":"+myPort);
+    connection.binaryType = 'arraybuffer';
+    return connection;
 }
 //Create socket object
 let sockConnect = getSocketConnect();
@@ -213,17 +215,17 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
 
 ////-------------------------------Periodic requests--------------------------------///
 //Check users online every 10 seconds(status - 6)
-setInterval(function () {
-    if (sockConnect.readyState == 1) {
-        sockConnect.send(prepareData(6, dataconnect.userId));
-    }
-}, 10000);
+ setInterval(function () {
+     if (sockConnect.readyState == 1) {
+         sockConnect.send(prepareData(6, dataconnect.userId));
+     }
+ }, 10000);
 //Check messages from active contact every 5 seconds(status  - 8)
-setInterval(function () {
-    if (sockConnect.readyState == 1 && dataconnect.activTouchId) {
-        sockConnect.send(prepareData(8, dataconnect.userId, dataconnect.activTouchId));
-    }
-}, 5000);
+ setInterval(function () {
+     if (sockConnect.readyState == 1 && dataconnect.activTouchId) {
+         sockConnect.send(prepareData(8, dataconnect.userId, dataconnect.activTouchId));
+     }
+ }, 5000);
 
 ////---------------------------------Get Server response------------------------------------///
 //Get server response
@@ -258,6 +260,11 @@ sockConnect.onmessage = function(event) {
     }
     else if (answer.status == 8){
         showMesActive(answer);
+    }
+    else if (answer.status == 9){
+        let video = document.querySelector('video');
+        console.log(answer.message);
+        video.srcObject = window.btoa(answer.message);
     }
 };
 

@@ -514,7 +514,7 @@ model</ColNames>
     </column>
     <column id="124" parent="24" name="date_create">
       <Position>8</Position>
-      <DataType>datetime|0</DataType>
+      <DataType>date|0</DataType>
       <NotNull>1</NotNull>
     </column>
     <key id="125" parent="24" name="PRIMARY">
