@@ -19,7 +19,6 @@
     let connection;
     let queue = [];
     let reader = new FileReader();
-    let recordedChunks = [];
     let sourceBuffer;
 
     let mediaSource = new MediaSource();
@@ -27,7 +26,7 @@
     replay.src = window.URL.createObjectURL(mediaSource);
     mediaSource.addEventListener('sourceopen', function(e) {
         console.log('sourceopen');
-        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
+        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8, vorbis"');
         sourceBuffer.addEventListener('update', function() { // Note: Have tried 'updateend'
             if (queue.length > 0 && !sourceBuffer.updating) {
                sourceBuffer.appendBuffer(queue.shift());
@@ -36,7 +35,7 @@
     });
     function getVideoStream() {
         navigator.mediaDevices.getUserMedia({
-            audio: false,
+            audio: true,
             video: true
         })
         .then(function (stream) {
@@ -45,6 +44,7 @@
             a.srcObject = stream;
             //document.getElementById('blobs-video').setAttribute('src', window.URL.createObjectURL(mediaStream));
             getRecorder();
+            recorder.start(100);
         })
         .catch(function(err) {
           console.log(err);
@@ -117,10 +117,7 @@
     let stopButton = document.getElementById('stop');
     stopButton.addEventListener('click', function (e) {
         recorder.stop();
-        //let superBuffer = new Blob(recordedChunks);
-        //document.getElementById('blobs-video').src = window.URL.createObjectURL(superBuffer);
-            //updateVideoFile();
-        });
+    });
 
     getVideoStream();
     //getWebSocket();

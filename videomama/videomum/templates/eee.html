@@ -1,32 +1,130 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
 <body>
-<video id="blobs-video" autoplay/>
+<video id="video" src="" autoplay ></video>
+<video id="blob-video" autoplay></video>
+<video id="blobs-video" controls autoplay></video>
+<canvas id="can" width="200" height="100"></canvas>
+<button id="record" name="button">start recording</button>
+<button id="stop" name="button">stop recording</button>
 <script>
-  var recordedChunks = [];
+    (function () {
+    let recorder;
+    let mediaStream;
+    let fileName;
+    let connection;
+    let queue = [];
+    let reader = new FileReader();
+    let recordedChunks = [];
+    let sourceBuffer;
 
-  function gotMedia(stream) {
-    // |video| shows a live view of the captured MediaStream.
-     document.getElementById('blobs-video').setAttribute('src', stream);
-
-    var recorder = null;
-    try {
-      recorder = new MediaRecorder(stream, {mimeType : "video/webm"});
-    } catch (e) {
-      console.error('Exception while creating MediaRecorder: ' + e);
-      return;
+    let mediaSource = new MediaSource();
+    let replay = document.getElementById('blobs-video');
+    replay.src = window.URL.createObjectURL(mediaSource);
+    mediaSource.addEventListener('sourceopen', function(e) {
+        console.log('sourceopen');
+        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
+        sourceBuffer.addEventListener('update', function() { // Note: Have tried 'updateend'
+            if (queue.length > 0 && !sourceBuffer.updating) {
+               sourceBuffer.appendBuffer(queue.shift());
+            }
+        });
+    });
+    function getVideoStream() {
+        navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: true
+        })
+        .then(function (stream) {
+            mediaStream = stream;
+            let a = document.getElementById('video');
+            a.srcObject = stream;
+            //document.getElementById('blobs-video').setAttribute('src', window.URL.createObjectURL(mediaStream));
+            getRecorder();
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
     }
 
-    recorder.ondataavailable = (event) => {
-      console.log(' Recorded chunk of size ' + event.data.size + "B");
-      recordedChunks.push(event.data);
-    };
+    function getRecorder() {
+        let options = { mimeType: 'video/webm', audioBitsPerSecond: 128000 };
+        recorder = new MediaRecorder(mediaStream, options);
+        recorder.ondataavailable = videoDataHandler;
+    }
 
-    recorder.start(100);
-  }
+    function videoDataHandler(event) {
+        let fileReader = new FileReader();
+        fileReader.readAsArrayBuffer(event.data);
+        fileReader.onload = function() {
+            if (typeof event.data !== 'string') {
+                if (sourceBuffer.updating || queue.length > 0) {
+                    queue.push(event.data);
+                }
+                else {
+                    sourceBuffer.appendBuffer(fileReader.result);
+                }
+            }
 
-  navigator.mediaDevices.getUserMedia({video: true , audio: true})
-      .then(gotMedia)
-      .catch(e => { console.error('getUserMedia() failed: ' + e); });
+            //sourceBuffer.appendBuffer(fileReader.result);
+        };
+
+        //if (event.data.size > 0) {
+        //    recordedChunks.push(event.data);
+        //}
+        //superBuffer = new Blob(recordedChunks);
+        //console.log(superBuffer);
+        //document.getElementById('blobs-video').src = window.URL.createObjectURL(superBuffer);
+
+
+        //reader = new FileReader();
+        //reader.readAsDataURL(event.data);
+        //reader.readAsArrayBuffer(event.data);
+        //reader.readAsBinaryString(event.data);
+        //reader.onloadend = function (event) {
+                //document.getElementById('blobs-video').setAttribute('src', reader.result);
+                //console.log(reader.result);
+                //connection.send(reader.result);
+       // }
+
+    }
+
+    function getWebSocket() {
+        var websocketEndpoint = 'ws://localhost:7000';
+        connection = new WebSocket(websocketEndpoint);
+        connection.binaryType = 'arraybuffer';
+        connection.onmessage = function (message) {
+            fileName = message.data;
+        }
+    }
+
+    function updateVideoFile() {
+        var video = document.getElementById('recorded-video');
+        var fileLocation = 'http://localhost:7000/uploads/'
+            + fileName + '.webm';
+        video.setAttribute('src', fileLocation);
+    }
+
+    let startButton = document.getElementById('record');
+    startButton.addEventListener('click', function (e) {
+        recorder.start(100);
+    });
+
+    let stopButton = document.getElementById('stop');
+    stopButton.addEventListener('click', function (e) {
+        recorder.stop();
+        //let superBuffer = new Blob(recordedChunks);
+        //document.getElementById('blobs-video').src = window.URL.createObjectURL(superBuffer);
+            //updateVideoFile();
+        });
+
+    getVideoStream();
+    //getWebSocket();
+})();
 </script>
 </body>
 </html>
