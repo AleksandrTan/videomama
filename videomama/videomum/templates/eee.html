@@ -29,6 +29,7 @@
         console.log('sourceopen');
         sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
         sourceBuffer.addEventListener('update', function() { // Note: Have tried 'updateend'
+            console.log('sourceupdate');
             if (queue.length > 0 && !sourceBuffer.updating) {
                sourceBuffer.appendBuffer(queue.shift());
             }

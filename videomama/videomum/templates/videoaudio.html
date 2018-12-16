@@ -20,31 +20,23 @@
     let queue = [];
     let reader = new FileReader();
     let sourceBuffer;
-
     let mediaSource = new MediaSource();
     let replay = document.getElementById('blobs-video');
     replay.src = window.URL.createObjectURL(mediaSource);
-    mediaSource.addEventListener('sourceopen', function(e) {
-        console.log('sourceopen');
-        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8, vorbis"');
-        sourceBuffer.addEventListener('update', function() { // Note: Have tried 'updateend'
-            if (queue.length > 0 && !sourceBuffer.updating) {
-               sourceBuffer.appendBuffer(queue.shift());
-            }
-        });
-    });
+
+
     function getVideoStream() {
         navigator.mediaDevices.getUserMedia({
-            audio: true,
+            audio: false,
             video: true
         })
         .then(function (stream) {
             mediaStream = stream;
-            let a = document.getElementById('video');
-            a.srcObject = stream;
+            //let a = document.getElementById('video');
+            //a.srcObject = stream;
             //document.getElementById('blobs-video').setAttribute('src', window.URL.createObjectURL(mediaStream));
             getRecorder();
-            recorder.start(100);
+            //recorder.start(100);
         })
         .catch(function(err) {
           console.log(err);
@@ -61,40 +53,13 @@
         let fileReader = new FileReader();
         fileReader.readAsArrayBuffer(event.data);
         fileReader.onload = function() {
-            if (typeof event.data !== 'string') {
-                if (sourceBuffer.updating || queue.length > 0) {
-                    queue.push(event.data);
-                }
-                else {
-                    sourceBuffer.appendBuffer(fileReader.result);
-                }
-            }
-
-            //sourceBuffer.appendBuffer(fileReader.result);
+            sourceBuffer.appendBuffer(fileReader.result);
+            //connection.send(reader.result);
         };
-
-        //if (event.data.size > 0) {
-        //    recordedChunks.push(event.data);
-        //}
-        //superBuffer = new Blob(recordedChunks);
-        //console.log(superBuffer);
-        //document.getElementById('blobs-video').src = window.URL.createObjectURL(superBuffer);
-
-
-        //reader = new FileReader();
-        //reader.readAsDataURL(event.data);
-        //reader.readAsArrayBuffer(event.data);
-        //reader.readAsBinaryString(event.data);
-        //reader.onloadend = function (event) {
-                //document.getElementById('blobs-video').setAttribute('src', reader.result);
-                //console.log(reader.result);
-                //connection.send(reader.result);
-       // }
-
     }
 
     function getWebSocket() {
-        var websocketEndpoint = 'ws://localhost:7000';
+        let websocketEndpoint = 'ws://localhost:7000';
         connection = new WebSocket(websocketEndpoint);
         connection.binaryType = 'arraybuffer';
         connection.onmessage = function (message) {
@@ -103,20 +68,41 @@
     }
 
     function updateVideoFile() {
-        var video = document.getElementById('recorded-video');
-        var fileLocation = 'http://localhost:7000/uploads/'
+        let video = document.getElementById('recorded-video');
+        let fileLocation = 'http://localhost:7000/uploads/'
             + fileName + '.webm';
         video.setAttribute('src', fileLocation);
     }
 
     let startButton = document.getElementById('record');
     startButton.addEventListener('click', function (e) {
+        console.log(mediaSource.sourceBuffers);
+        console.log(mediaSource.readyState);
+        if (mediaSource.activeSourceBuffers.length == 0){
+            console.log(mediaSource.readyState);
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
+            console.log(mediaSource.sourceBuffers);
+
+        }
         recorder.start(100);
     });
 
     let stopButton = document.getElementById('stop');
     stopButton.addEventListener('click', function (e) {
         recorder.stop();
+        mediaSource.endOfStream();
+        console.log(mediaSource.readyState);
+        console.log(mediaSource.sourceBuffers);
+        setTimeout(function(){
+            if(mediaSource.activeSourceBuffers.length == 1){
+                mediaSource.removeSourceBuffer(sourceBuffer);
+                replay.src = '';
+                replay.src = window.URL.createObjectURL(mediaSource);
+                console.log(1);
+            }
+
+        },
+            1000);
     });
 
     getVideoStream();
