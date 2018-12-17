@@ -8,18 +8,16 @@ from base64 import b64encode
 import _thread as thread
 import json
 
+from videomum.logobject.logserver1 import LogServerOne
 from videomum.usercontacts.msdb.msdbcontacts import MySqlStorage
 from videomum.onlinestorage.liststorage import ListStorage
-from videomum.messagestorage.mststorage.msststorage import MSMessagtStorage
-from videomum.logobject.logserver1 import LogServerOne
 
 
-class Mainserver:
+class VAMainserverOne:
     def __init__(self):
         self.myHost = '127.0.0.1'
-        self.myPort = 50007
+        self.myPort = 50008
         self.onlinestorage = ListStorage()
-        self.message_storage = MSMessagtStorage()
         self.magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
         self.mainsocket = socket(AF_INET, SOCK_STREAM)
         self.mainsocket.bind((self.myHost, self.myPort))
@@ -71,59 +69,8 @@ class Mainserver:
                             with self.thread_lock:
                                 # check if there is a user in the repository online
                                 self.onlinestorage.checkuserid(data_payload['userId'])
-                                #user data (all contacts, contacts online)
-                                contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
-                                                                       self.onlinestorage.get_storage(), data_payload['status'])
-                                #check isset new messages(from_id, count messages)
-                                contacts_online['isset_messages'] = self.message_storage.get_other_messages(data_payload['userId'])
                             #send answer
-                            connection.send(self.send_frame(json.dumps(contacts_online).encode(), 0x1))
-                        # send users contacts online, check new messages
-                        if data_payload['status'] == 4 or data_payload['status'] == 6:
-                            with self.thread_lock:
-                                #user data (all contacts, contacts online)
-                                contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
-                                                                       self.onlinestorage.get_storage(), data_payload['status'])
-                                #check isset new messages(from_id, count messages)
-                                contacts_online['isset_messages'] = self.message_storage.get_other_messages(data_payload['userId'])
-                            #send answer
-                            connection.send(self.send_frame(json.dumps(contacts_online).encode(), 0x1))
-                        #get message and send a reply message
-                        if data_payload['status'] == 2:
-                            try:
-                                with self.thread_lock:
-                                    self.message_storage.save_message(data_payload['whom_id'], data_payload['text_message'],
-                                                                      data_payload['from_id'], data_payload['from_name'])
-                                #connection.send(self.send_frame(message.encode(), 0x1))
-                            except ConnectionAbortedError as Error1:
-                                self.loger.set_log(Error1)
-                                break
-                        # send messages from active contact
-                        if data_payload['status'] == 7:
-                            try:
-                                with self.thread_lock:
-                                    messages = self.message_storage.get_messages(data_payload['userId'],
-                                                                                 data_payload['idContact'])
-                                    messages_history = self.message_storage.get_history_message(data_payload['userId'],
-                                                                                                data_payload['idContact'])
-                                message = {"status": 7, "messages_contact": messages,
-                                           "subId": str(data_payload['idContact']), 'message_history': messages_history}
-                                connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
-                            except ConnectionAbortedError as Error7:
-                                self.loger.set_log(Error7)
-                                break
-                        # check messages from active contact
-                        if data_payload['status'] == 8:
-                            try:
-                                with self.thread_lock:
-                                    messages = self.message_storage.get_messages(data_payload['userId'],
-                                                                                 data_payload['idContact'])
-                                message = {"status": 8, "messages_contact": messages,
-                                           "subId": str(data_payload['idContact'])}
-                                connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
-                            except ConnectionAbortedError as Error8:
-                                self.loger.set_log(Error8)
-                                break
+                            connection.send(self.send_frame(json.dumps({"status": 10, "id": 0}).encode(), 0x1))
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
                         break
@@ -210,5 +157,5 @@ class Mainserver:
 
 #start server
 if __name__ == '__main__':
-    mainServer = Mainserver()
+    mainServer = VAMainserverOne()
     mainServer.startserver()

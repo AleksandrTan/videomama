@@ -5,10 +5,11 @@
     <title>Title</title>
 </head>
 <body>
-<video id="video" src="" autoplay ></video>
-<video id="blob-video" autoplay></video>
+<!--<video id="video" src="" autoplay ></video>
 <video id="blobs-video" controls autoplay></video>
-<canvas id="can" width="200" height="100"></canvas>
+<canvas id="can" width="200" height="100"></canvas>-->
+<audio id="audio" controls autoplay></audio>
+
 <button id="record" name="button">start recording</button>
 <button id="stop" name="button">stop recording</button>
 <script>
@@ -19,33 +20,29 @@
     let connection;
     let queue = [];
     let reader = new FileReader();
-    let recordedChunks = [];
     let sourceBuffer;
-
     let mediaSource = new MediaSource();
-    let replay = document.getElementById('blobs-video');
+    let replay = document.getElementById('audio');
     replay.src = window.URL.createObjectURL(mediaSource);
-    mediaSource.addEventListener('sourceopen', function(e) {
-        console.log('sourceopen');
-        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
-        sourceBuffer.addEventListener('update', function() { // Note: Have tried 'updateend'
-            console.log('sourceupdate');
-            if (queue.length > 0 && !sourceBuffer.updating) {
-               sourceBuffer.appendBuffer(queue.shift());
-            }
-        });
-    });
+    let mime = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+    if (!MediaSource.isTypeSupported(mime)) {
+      alert('Can not play the media. Media of MIME type ' +
+            mime + ' is not supported.');
+      throw ('Media of type ' + mime +
+            ' is not supported.');
+    }
+
+    let constraints = { audio: false, video:true };
     function getVideoStream() {
-        navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: true
-        })
+        navigator.mediaDevices.getUserMedia(constraints)
         .then(function (stream) {
             mediaStream = stream;
-            let a = document.getElementById('video');
-            a.srcObject = stream;
+            console.log(mediaStream);
+            //let a = document.getElementById('video');
+            //a.srcObject = stream;
             //document.getElementById('blobs-video').setAttribute('src', window.URL.createObjectURL(mediaStream));
             getRecorder();
+            //recorder.start(100);
         })
         .catch(function(err) {
           console.log(err);
@@ -62,40 +59,15 @@
         let fileReader = new FileReader();
         fileReader.readAsArrayBuffer(event.data);
         fileReader.onload = function() {
-            if (typeof event.data !== 'string') {
-                if (sourceBuffer.updating || queue.length > 0) {
-                    queue.push(event.data);
-                }
-                else {
-                    sourceBuffer.appendBuffer(fileReader.result);
-                }
-            }
-
-            //sourceBuffer.appendBuffer(fileReader.result);
+            console.log(mediaSource.sourceBuffers.length+ 'hmbl');
+            console.log(mediaSource.activeSourceBuffers.length+ 'hambl');
+            sourceBuffer.appendBuffer(fileReader.result);
+            //connection.send(reader.result);
         };
-
-        //if (event.data.size > 0) {
-        //    recordedChunks.push(event.data);
-        //}
-        //superBuffer = new Blob(recordedChunks);
-        //console.log(superBuffer);
-        //document.getElementById('blobs-video').src = window.URL.createObjectURL(superBuffer);
-
-
-        //reader = new FileReader();
-        //reader.readAsDataURL(event.data);
-        //reader.readAsArrayBuffer(event.data);
-        //reader.readAsBinaryString(event.data);
-        //reader.onloadend = function (event) {
-                //document.getElementById('blobs-video').setAttribute('src', reader.result);
-                //console.log(reader.result);
-                //connection.send(reader.result);
-       // }
-
     }
 
     function getWebSocket() {
-        var websocketEndpoint = 'ws://localhost:7000';
+        let websocketEndpoint = 'ws://localhost:7000';
         connection = new WebSocket(websocketEndpoint);
         connection.binaryType = 'arraybuffer';
         connection.onmessage = function (message) {
@@ -104,24 +76,46 @@
     }
 
     function updateVideoFile() {
-        var video = document.getElementById('recorded-video');
-        var fileLocation = 'http://localhost:7000/uploads/'
+        let video = document.getElementById('recorded-video');
+        let fileLocation = 'http://localhost:7000/uploads/'
             + fileName + '.webm';
         video.setAttribute('src', fileLocation);
     }
 
     let startButton = document.getElementById('record');
     startButton.addEventListener('click', function (e) {
+        console.log(mediaSource.sourceBuffers + 'mb');
+        console.log(mediaSource.activeSourceBuffers.length + 'ambl');
+        console.log(mediaSource.readyState);
+        if (mediaSource.activeSourceBuffers.length == 0){
+            console.log(mediaSource.activeSourceBuffers.length + 'ambl');
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="opus"');
+            replay.play();
+            console.log(mediaSource.activeSourceBuffers.length+ 'ambl');
+            console.log(mediaSource.sourceBuffers+ 'mb');
+            console.log(mediaSource.sourceBuffers.length+ 'mbl');
+
+        }
         recorder.start(100);
     });
 
     let stopButton = document.getElementById('stop');
     stopButton.addEventListener('click', function (e) {
         recorder.stop();
-        //let superBuffer = new Blob(recordedChunks);
-        //document.getElementById('blobs-video').src = window.URL.createObjectURL(superBuffer);
-            //updateVideoFile();
-        });
+        setTimeout(function(){
+        mediaSource.endOfStream();
+        console.log(mediaSource.readyState);
+        console.log(mediaSource.sourceBuffers);
+            if(mediaSource.sourceBuffers.length == 1){
+                mediaSource.removeSourceBuffer(sourceBuffer);
+                replay.src = '';
+                replay.src = window.URL.createObjectURL(mediaSource);
+                console.log(100000);
+            }
+
+        },
+            2000);
+    });
 
     getVideoStream();
     //getWebSocket();
