@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Server for video/audio messaging
+"""
 from socket import *
 import hashlib
 import base64

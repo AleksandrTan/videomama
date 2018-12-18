@@ -25,10 +25,15 @@
         }
     };
     sockConnect.onmessage = function(event) {
-    let answer = JSON.parse(event.data);
-    //Get message
-    if(answer.status == 10){
-        console.log(event.data);
+        let answer = JSON.parse(event.data);
+        //Get message
+        if(answer.status == 10){
+            console.log(event.data);
+        }
+    };
+
+    //Prepare data for service request
+    function prepareData(status, idUser, idContact=0) {
+        return '{"status":'+status+', "userId":'+idUser+', "idContact":'+idContact+'}';
     }
-};
 })();
