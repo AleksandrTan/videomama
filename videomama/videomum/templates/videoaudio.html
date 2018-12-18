@@ -5,12 +5,10 @@
     <title>Title</title>
 </head>
 <body>
-<video id="video" src="">
-
-</video>
-<button id="unmuteButton"></button>
+<video id="video" autoplay></video>
+<button id="unmuteButton">Go</button>
 <video id="blob-video"></video>
-<video id="blobs-video" controls autoplay muted="muted"></video>
+<video id="blobs-video" controls autoplay></video>
 <canvas id="can" width="200" height="100"></canvas>
 <button id="record" name="button">start recording</button>
 <button id="stop" name="button">stop recording</button>
@@ -25,7 +23,16 @@
     let sourceBuffer;
     let mediaSource = new MediaSource();
     let replay = document.getElementById('blobs-video');
+    let startButton = document.getElementById('record');
+    let stopButton = document.getElementById('stop');
+
     replay.src = window.URL.createObjectURL(mediaSource);
+    replay.play();
+    //mediaSource.addEventListener('sourceopen', function(e) {
+    //    replay.play();
+    //    sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp9, opus"');
+    //    sourceBuffer.addEventListener('updatestart', function(e) { console.log('updatestart: ' + mediaSource.readyState)});
+    //});
 
     function getVideoStream() {
         navigator.mediaDevices.getUserMedia({
@@ -36,7 +43,7 @@
             mediaStream = stream;
             //let a = document.getElementById('video');
             //a.srcObject = stream;
-            //document.getElementById('blobs-video').setAttribute('src', window.URL.createObjectURL(mediaStream));
+            //document.getElementById('blobs-video').srcObject =mediaStream;
             getRecorder();
             //recorder.start(100);
         })
@@ -78,37 +85,41 @@
         video.setAttribute('src', fileLocation);
     }
 
-    let startButton = document.getElementById('record');
     startButton.addEventListener('click', function (e) {
         console.log(mediaSource.sourceBuffers);
         console.log(mediaSource.readyState);
         if (mediaSource.activeSourceBuffers.length == 0){
             console.log(mediaSource.readyState);
-            sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vorbis,vp9"');
             //replay.play();
-            let promise = replay.play();
-
-            if (promise !== undefined) {
-              promise.then(_ => {
-                alert(1000);
-              }).catch(error => {
-               alert(2000);
-               replay.load();
-               replay.play();
-               replay.muted = false;
-              });
-            }
-
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
+            //replay.play();
             console.log(mediaSource.activeSourceBuffers.length+ 'ambl');
             console.log(mediaSource.sourceBuffers+ 'mb');
             console.log(mediaSource.sourceBuffers.length+ 'mbl');
         }
-        //recorder.start(100);
+        recorder.start(100);
     });
-    replay.addEventListener("play", function(){
+    document.getElementById('unmuteButton').addEventListener('click', function() {
+        recorder.start(100);
+         let promise = replay.play();
+            if (promise !== undefined) {
+              promise.then(_ => {
+                alert(1000);
+                console.log(promise);
+              }).catch(error => {
+               alert(error);
+               console.log(promise);
+               replay.load();
+               replay.muted = false;
+              });
+            }
+        //replay.play();
+    });
+
+    replay.addEventListener("", function(){
         console.log(mediaSource.sourceBuffers);
         console.log(mediaSource.readyState);
-        recorder.start(100);
+        //recorder.start(100);
         if (mediaSource.activeSourceBuffers.length == 0){
             console.log(mediaSource.readyState);
             sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vorbis,vp9"');
@@ -129,8 +140,6 @@
         //this.play();
         //recorder.start(100);
     }, true);
-
-    let stopButton = document.getElementById('stop');
     stopButton.addEventListener('click', function (e) {
         recorder.stop();
         mediaSource.endOfStream();
