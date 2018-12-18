@@ -5,7 +5,7 @@
     <title>Title</title>
 </head>
 <body>
-<video id="video" autoplay></video>
+<video id="video" autoplay src="https://example-files.online-convert.com/video/webm/example.webm" controls></video>
 <video id="blobs-video" controls autoplay></video>
 <button id="record" name="button">start recording</button>
 <button id="stop" name="button">stop recording</button>
@@ -20,7 +20,11 @@
     let replay = document.getElementById('blobs-video');
     let startButton = document.getElementById('record');
     let stopButton = document.getElementById('stop');
-
+    function uas(str) {
+        alert(navigator.userAgent);
+        //return navigator.userAgent.indexOf(str) == 0;
+    }
+    uas('asas');
     function getVideoStream() {
         navigator.mediaDevices.getUserMedia({
             audio: true,
