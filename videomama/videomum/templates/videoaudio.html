@@ -25,9 +25,8 @@
     let replay = document.getElementById('blobs-video');
     let startButton = document.getElementById('record');
     let stopButton = document.getElementById('stop');
-
     replay.src = window.URL.createObjectURL(mediaSource);
-    replay.play();
+
     //mediaSource.addEventListener('sourceopen', function(e) {
     //    replay.play();
     //    sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp9, opus"');
@@ -89,7 +88,7 @@
         console.log(mediaSource.readyState);
         if (mediaSource.activeSourceBuffers.length == 0){
             console.log(mediaSource.readyState);
-            //replay.play();
+            replay.play();
             sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
             //replay.play();
             console.log(mediaSource.activeSourceBuffers.length+ 'ambl');
@@ -98,47 +97,7 @@
         }
         recorder.start(100);
     });
-    document.getElementById('unmuteButton').addEventListener('click', function() {
-        recorder.start(100);
-         let promise = replay.play();
-            if (promise !== undefined) {
-              promise.then(_ => {
-                alert(1000);
-                console.log(promise);
-              }).catch(error => {
-               alert(error);
-               console.log(promise);
-               replay.load();
-               replay.muted = false;
-              });
-            }
-        //replay.play();
-    });
 
-    replay.addEventListener("", function(){
-        console.log(mediaSource.sourceBuffers);
-        console.log(mediaSource.readyState);
-        //recorder.start(100);
-        if (mediaSource.activeSourceBuffers.length == 0){
-            console.log(mediaSource.readyState);
-            sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vorbis,vp9"');
-            console.log(mediaSource.activeSourceBuffers.length+ 'ambl');
-            console.log(mediaSource.sourceBuffers+ 'mb');
-            console.log(mediaSource.sourceBuffers.length+ 'mbl');
-            let promise = this.play();
-             if (promise !== undefined) {
-              promise.then(_ => {
-                alert(1000);
-              }).catch(error => {
-               alert(2000);
-               this.pause();
-               this.play();
-              });
-            }
-        }
-        //this.play();
-        //recorder.start(100);
-    }, true);
     stopButton.addEventListener('click', function (e) {
         recorder.stop();
         mediaSource.endOfStream();
@@ -157,7 +116,6 @@
     });
 
     getVideoStream();
-    //getWebSocket();
 })();
 </script>
 </body>

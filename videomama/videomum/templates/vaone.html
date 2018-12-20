@@ -5,7 +5,7 @@
     <title>Title</title>
 </head>
 <body>
-<video id="video" autoplay src="https://example-files.online-convert.com/video/webm/example.webm" controls></video>
+<!--<video id="video" autoplay src="https://example-files.online-convert.com/video/webm/example.webm" controls></video>-->
 <video id="blobs-video" controls autoplay></video>
 <button id="record" name="button">start recording</button>
 <button id="stop" name="button">stop recording</button>
@@ -14,17 +14,18 @@
     let recorder;
     let mediaStream;
     let connection;
-    let reader = new FileReader();
+    let fileReader = new FileReader();
     let sourceBuffer;
     let mediaSource = new MediaSource();
     let replay = document.getElementById('blobs-video');
     let startButton = document.getElementById('record');
     let stopButton = document.getElementById('stop');
+    replay.src = window.URL.createObjectURL(mediaSource);
+
     function uas(str) {
         alert(navigator.userAgent);
-        //return navigator.userAgent.indexOf(str) == 0;
+        return navigator.userAgent.indexOf(str) == 0;
     }
-    uas('asas');
     function getVideoStream() {
         navigator.mediaDevices.getUserMedia({
             audio: true,
@@ -35,8 +36,8 @@
             //let a = document.getElementById('video');
             //a.srcObject = stream;
             //document.getElementById('blobs-video').srcObject =mediaStream;
-            replay.src = window.URL.createObjectURL(mediaSource);
-            replay.play();
+            //replay.src = window.URL.createObjectURL(mediaSource);
+            //replay.play();
             getRecorder();
         })
         .catch(function(err) {
@@ -51,9 +52,10 @@
     }
 
     function videoDataHandler(event) {
-        let fileReader = new FileReader();
+        //let fileReader = new FileReader();
         fileReader.readAsArrayBuffer(event.data);
         fileReader.onload = function() {
+            console.log(fileReader.result);
             sourceBuffer.appendBuffer(fileReader.result);
             //connection.send(reader.result);
         };
@@ -76,6 +78,7 @@
 
     startButton.addEventListener('click', function (e) {
         if (mediaSource.activeSourceBuffers.length == 0){
+            replay.play();
             sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
         }
         recorder.start(100);
@@ -95,6 +98,33 @@
     getVideoStream();
     //getWebSocket();
 })();
+
+    function supportsVideoType(type) {
+  let video;
+
+  // Allow user to create shortcuts, i.e. just "webm"
+  let formats = {
+    ogg: 'video/ogg; codecs="theora"',
+    h264: 'video/mp4; codecs="avc1.42E01E"',
+    webm: 'video/webm; codecs="vp8, vorbis"',
+    vp9: 'video/webm; codecs="vp9"',
+    hls: 'application/x-mpegURL; codecs="avc1.42E01E"'
+  };
+
+  if(!video) {
+    video = document.createElement('video')
+  }
+
+  return video.canPlayType(formats[type] || type);
+}
+
+// Usage
+if(supportsVideoType('h264') === "probably") {
+  console.log('1');
+}
+else {
+  console.log('2');
+}
 </script>
 </body>
 </html>

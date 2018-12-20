@@ -61,6 +61,7 @@ class VAMainserverOne:
                         if dataClean['payload'] == b'\x03\xe9':
                             break
                         data_payload = json.loads(dataClean['payload'].decode())
+                        print(data_payload)
                         #if the user has finished work
                         if data_payload['status'] == 3:
                             with self.thread_lock:
@@ -74,6 +75,13 @@ class VAMainserverOne:
                                 self.onlinestorage.checkuserid(data_payload['userId'])
                             #send answer
                             connection.send(self.send_frame(json.dumps({"status": 10, "id": 0}).encode(), 0x1))
+                            file = open('my.mp4', 'wb')
+                            while True:
+                                dataGetw = connection.recv(1024)
+                                dataCleanw = self.decode_frame(dataGetw)
+                                file.write(dataCleanw['payload'])
+                                connection.send(self.send_frame(dataCleanw['payload'], 0x2))
+                                #self.stopserver(connection)
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
                         break
@@ -157,6 +165,7 @@ class VAMainserverOne:
         else:
             mes = {"status": 5, "online": online, "allcontacts": all_contacts, "id": 0}
         return mes
+
 
 #start server
 if __name__ == '__main__':
