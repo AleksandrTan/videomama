@@ -15,6 +15,8 @@
     let recorder;
     let isRecording = false;
     let blobsArray = [];
+    let recordButton = document.getElementById('record');
+    let stepButton = document.getElementById('stop');
 // A quick demo to see how to best store video data from mediarecorder API as chunks to be transported and played back later.
 
 navigator.mediaDevices.getUserMedia({
@@ -47,7 +49,6 @@ createMediaPlayer = function () {
 function getList(event){
     blobsArray.push(event.data);
 }
-recordButton = document.getElementById('record');
 recordButton.addEventListener('click', function (e) {
     isRecording = true;
     createMediaPlayer();
@@ -55,7 +56,6 @@ recordButton.addEventListener('click', function (e) {
     window.recorder.start();
 });
 
-let stepButton = document.getElementById('stop');
 stepButton.addEventListener('click', function (e) {
     isRecording = false;
     //Stop record

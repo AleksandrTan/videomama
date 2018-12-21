@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!--<video id="video" autoplay src="https://example-files.online-convert.com/video/webm/example.webm" controls></video>-->
+<video id="blobs-video" controls autoplay></video>
+<button id="record" name="button">start recording</button>
+<button id="stop" name="button">stop recording</button>
+<script>
+    (function () {
+        let storage = [];
+        let recorder;
+        let mediaStream;
+        let connection;
+        let fileReader = new FileReader();
+        let sourceBuffer;
+        let mediaSource = new MediaSource();
+        let replay = document.getElementById('blobs-video');
+        let startButton = document.getElementById('record');
+        let stopButton = document.getElementById('stop');
+        replay.src = window.URL.createObjectURL(mediaSource);
+
+        function uas(str) {
+            alert(navigator.userAgent);
+            return navigator.userAgent.indexOf(str) == 0;
+        }
+        function getVideoStream() {
+            navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: true
+            })
+            .then(function (stream) {
+                mediaStream = stream;
+                //let a = document.getElementById('video');
+                //a.srcObject = stream;
+                //document.getElementById('blobs-video').srcObject =mediaStream;
+                //replay.src = window.URL.createObjectURL(mediaSource);
+                //replay.play();
+                getRecorder();
+            })
+            .catch(function(err) {
+              console.log(err);
+            });
+        }
+
+        function getRecorder() {
+            let options = { mimeType: 'video/webm', audioBitsPerSecond: 128000 };
+            recorder = new MediaRecorder(mediaStream, options);
+            recorder.ondataavailable = videoDataHandler;
+        }
+
+        function videoDataHandler(event) {
+            //let fileReader = new FileReader();
+            fileReader.readAsArrayBuffer(event.data);
+            fileReader.onload = function() {
+                //console.log(event.data);
+                //sourceBuffer.appendBuffer(fileReader.result);
+                //sourceBuffer.appendBuffer(event.data);
+                storage.unshift(fileReader.result);
+                if (sourceBuffer.updating || storage.length > 0){
+                    //console.log(storage);
+                    sourceBuffer.appendBuffer(storage.pop());
+                }
+            };
+        }
+        function getWebSocket() {
+            let websocketEndpoint = 'ws://localhost:7000';
+            connection = new WebSocket(websocketEndpoint);
+            connection.binaryType = 'arraybuffer';
+            connection.onmessage = function (message) {
+                fileName = message.data;
+            }
+        }
+
+        function updateVideoFile() {
+            let video = document.getElementById('recorded-video');
+            let fileLocation = 'http://localhost:7000/uploads/'
+                + fileName + '.webm';
+            video.setAttribute('src', fileLocation);
+        }
+
+        startButton.addEventListener('click', function (e) {
+            if (mediaSource.activeSourceBuffers.length == 0){
+                replay.play();
+                sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
+            }
+            recorder.start(100);
+        });
+        stopButton.addEventListener('click', function (e) {
+            recorder.stop();
+            mediaSource.endOfStream();
+            setTimeout(function(){
+                if(mediaSource.activeSourceBuffers.length == 1){
+                    mediaSource.removeSourceBuffer(sourceBuffer);
+                    replay.src = '';
+                    replay.src = window.URL.createObjectURL(mediaSource);
+                }
+            },
+                1000);
+        });
+        getVideoStream();
+        //getWebSocket();
+})();
+
+    function supportsVideoType(type) {
+  let video;
+
+  // Allow user to create shortcuts, i.e. just "webm"
+  let formats = {
+    ogg: 'video/ogg; codecs="theora"',
+    h264: 'video/mp4; codecs="avc1.42E01E"',
+    webm: 'video/webm; codecs="vp8, vorbis"',
+    vp9: 'video/webm; codecs="vp9"',
+    hls: 'application/x-mpegURL; codecs="avc1.42E01E"'
+  };
+
+  if(!video) {
+    video = document.createElement('video')
+  }
+
+  return video.canPlayType(formats[type] || type);
+}
+
+// Usage
+if(supportsVideoType('h264') === "probably") {
+  console.log('1');
+}
+else {
+  console.log('2');
+}
+</script>
+</body>
+</html>

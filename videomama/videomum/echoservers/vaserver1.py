@@ -77,7 +77,7 @@ class VAMainserverOne:
                             connection.send(self.send_frame(json.dumps({"status": 10, "id": 0}).encode(), 0x1))
                             file = open('my.mp4', 'wb')
                             while True:
-                                dataGetw = connection.recv(1024)
+                                dataGetw = connection.recv(70000)
                                 dataCleanw = self.decode_frame(dataGetw)
                                 file.write(dataCleanw['payload'])
                                 connection.send(self.send_frame(dataCleanw['payload'], 0x2))

@@ -56,10 +56,9 @@
               }
           }
           else {
-              queue.push(event.data);
+              queue.unshift(event.data);
           }
     };
-
     //Prepare data for service request
     function prepareData(status, idUser, idContact=0) {
         return '{"status":'+status+', "userId":'+idUser+', "idContact":'+idContact+'}';
@@ -78,11 +77,6 @@
         })
         .then(function (stream) {
             mediaStream = stream;
-            //let a = document.getElementById('video');
-            //a.srcObject = stream;
-            //document.getElementById('blobs-video').srcObject =mediaStream;
-            //replay.src = window.URL.createObjectURL(mediaSource);
-            //replay.play();
             getRecorder();
         })
         .catch(function(err) {
@@ -103,8 +97,8 @@
         fileReader.onload = function() {
             connection.send(fileReader.result);
             if (sourceBuffer.updating || queue.length > 0){
-                //console.log(queue.shift());
-                sourceBuffer.appendBuffer(queue.shift());
+                console.log(queue);
+                sourceBuffer.appendBuffer(queue.pop());
             }
         };
     }
@@ -142,6 +136,7 @@
                 mediaSource.removeSourceBuffer(sourceBuffer);
                 replay.src = '';
                 replay.src = window.URL.createObjectURL(mediaSource);
+                queue = [];
             }
         },
             1000);
