@@ -25,7 +25,7 @@
     let queue = [];
     replay.src = window.URL.createObjectURL(mediaSource);
     replay.addEventListener('error',function(e){ console.error(e); });
-
+    console.log(queue);
     function getSocketConnect() {
         let myHost = '127.0.0.1';
         let myPort = 50008;
@@ -92,44 +92,31 @@
 
     function videoDataHandler(event) {
         //let fileReader = new FileReader();
-        console.log(mediaSource.sourceBuffers.length + '00');
+        //console.log(mediaSource.sourceBuffers.length + '00');
         fileReader.readAsArrayBuffer(event.data);
         fileReader.onload = function() {
             connection.send(fileReader.result);
             if (sourceBuffer.updating || queue.length > 0){
-                console.log(queue);
+                //console.log(45);
                 sourceBuffer.appendBuffer(queue.pop());
             }
         };
     }
 
     startButton.addEventListener('click', function (e) {
-        replay.play();
+        //let queue = [];
+        //replay.play();
         if (mediaSource.activeSourceBuffers.length == 0){
+            replay.play();
             sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
-            sourceBuffer.addEventListener('updateend', function() { // Note: Have tried 'updateend'
-              console.log('Append 3');
-           });
-            sourceBuffer.addEventListener('abort', function() {
-                console.count('abort');
-              });
-              sourceBuffer.addEventListener('error', function() {
-                console.log('error');
-              });
-              sourceBuffer.addEventListener('updatestart', function() {
-                console.count('updatestart');
-              });
-              sourceBuffer.addEventListener('update', function() {
-                console.count('update');
-              });
-              sourceBuffer.addEventListener('updateend', function() {
-                console.count('updateend');
-              });
+            //replay.play();
+
         }
         recorder.start(100);
     });
     stopButton.addEventListener('click', function (e) {
         recorder.stop();
+        replay.pause();
         mediaSource.endOfStream();
         setTimeout(function(){
             if(mediaSource.activeSourceBuffers.length == 1){

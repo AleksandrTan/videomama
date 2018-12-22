@@ -75,13 +75,16 @@ class VAMainserverOne:
                                 self.onlinestorage.checkuserid(data_payload['userId'])
                             #send answer
                             connection.send(self.send_frame(json.dumps({"status": 10, "id": 0}).encode(), 0x1))
-                            file = open('my.mp4', 'wb')
+                            #file = open('my.mp4', 'wb')
                             while True:
-                                dataGetw = connection.recv(70000)
+                                dataGetw = connection.recv(100000)
                                 dataCleanw = self.decode_frame(dataGetw)
-                                file.write(dataCleanw['payload'])
-                                connection.send(self.send_frame(dataCleanw['payload'], 0x2))
-                                #self.stopserver(connection)
+                                if dataCleanw:
+                                    #file.write(dataCleanw['payload'])
+                                    connection.send(self.send_frame(dataCleanw['payload'], 0x2))
+                                    #self.stopserver(connection)
+                                else:
+                                    continue
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
                         break
@@ -108,7 +111,10 @@ class VAMainserverOne:
         frame = {}
         payload_length = ''
         payload_offset = ''
-        byte1, byte2 = struct.unpack_from('!BB', data)
+        if data:
+            byte1, byte2 = struct.unpack_from('!BB', data)
+        else:
+            return
         frame['fin'] = (byte1 >> 7) & 1
         frame['opcode'] = byte1 & 0xf
         masked = (byte2 >> 7) & 1
