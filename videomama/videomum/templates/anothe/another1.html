@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+  </head>
+  <body>
+    <progress min="0" value="0"></progress><br><label></label><br>
+    <video controls></video>
+    <script>
+        // http://nickdesaulniers.github.io/netfix/demo/bufferAll.html
+        // http://jsfiddle.net/adamboduch/JVfkt/
+        // The global web socket.
+        var sock, sourceBuffer;
+        sock = new WebSocket( "ws://mock" );
+        sock.onerror = function(e) {
+          console.log("sock error", e)
+        }
+        // This is unchanging production code that doesn"t know
+        // we"re mocking the web socket.
+        sock.onmessage = function( e ) {
+          console.log("socket message", e.data);
+          sourceBuffer.appendBuffer(e.data);
+        };
+      var video = document.querySelector("video");
+      var progress = document.querySelector("progress");
+      var label = document.querySelector("label");
+      var assetURL = "http://nickdesaulniers.github.io/netfix/"
+                     + "demo/frag_bunny.mp4";
+      // Need to be specific for Blink regarding codecs
+      // ./mp4info frag_bunny.mp4 | grep Codec
+      var mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+
+      if ("MediaSource" in window
+          && MediaSource.isTypeSupported(mimeCodec)) {
+        var mediaSource = new MediaSource;
+        //console.log(mediaSource.readyState); // closed
+        video.src = URL.createObjectURL(mediaSource);
+        mediaSource.addEventListener("sourceopen", sourceOpen);
+      } else {
+        console.error("Unsupported MIME type or codec: ", mimeCodec);
+      }
+      video.addEventListener("canplay", function() {
+        alert("video canplay")
+      })
+      function sourceOpen (_) {
+        //console.log(this.readyState); // open
+        var mediaSource = this;
+        sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+        fetchAB(assetURL, function (buf) {
+          sourceBuffer.addEventListener("updateend", function (event) {
+          console.log("sourceBuffer updateend event;"
+                      + "mediaSource.readyState:"
+                     , mediaSource.readyState);
+            // mediaSource.endOfStream();
+            // video.play();
+            // console.log(mediaSource.readyState); // ended
+          });
+
+        });
+      };
+      // mock `WebSocket` message
+      function fetchAB (url, cb) {
+        var xhr = new XMLHttpRequest;
+        xhr.open("get", url);
+        var file = url.split("/").pop();
+        xhr.responseType = "arraybuffer";
+        xhr.onload = function () {
+          // mock `WebSocket` message
+          sock.dispatchEvent( new MessageEvent( "message", {
+            data: xhr.response
+        }));
+        console.log("video sent to sock", sock);
+        cb();
+        };
+        xhr.onprogress = function(e) {
+           progress.max = e.total;
+           progress.value = e.loaded;
+           label.innerHTML = "loading " + file + " ...<br>"
+                             + e.loaded + " of "
+                             + e.total + " bytes loaded";
+        };
+        xhr.send();
+      }
+    </script>
+  </body>
+  </html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Try send</title>
+    <title>Send Server</title>
 </head>
 <body>
 <!--<video id="video" autoplay controls></video>-->
@@ -25,7 +25,7 @@
     let queue = [];
     replay.src = window.URL.createObjectURL(mediaSource);
     replay.addEventListener('error',function(e){ console.error(e); });
-    console.log(queue);
+    //console.log(queue);
     function getSocketConnect() {
         let myHost = '127.0.0.1';
         let myPort = 50008;
@@ -37,12 +37,12 @@
     let sockConnect = getSocketConnect();
 //open connection
     sockConnect.onopen = function(ws) {
-        console.log("Соединение открыто...");
+        //console.log("Соединение открыто...");
         if(this.readyState == 1){
             //send user id after establishing connection
             setTimeout(function () {
                 sockConnect.send(prepareData(1, 1));
-                console.log("req");
+                //console.log("req");
             }, 1000);
         }
     };
@@ -51,7 +51,7 @@
               let answer = JSON.parse(event.data);
             //Get message
               if(answer.status == 10){
-                  console.log(event.data);
+                  //console.log(event.data);
                   flag = 1;
               }
           }
@@ -91,26 +91,19 @@
     }
 
     function videoDataHandler(event) {
-        //let fileReader = new FileReader();
-        //console.log(mediaSource.sourceBuffers.length + '00');
         fileReader.readAsArrayBuffer(event.data);
         fileReader.onload = function() {
             connection.send(fileReader.result);
             if (sourceBuffer.updating || queue.length > 0){
-                //console.log(45);
                 sourceBuffer.appendBuffer(queue.pop());
             }
         };
     }
 
     startButton.addEventListener('click', function (e) {
-        //let queue = [];
-        //replay.play();
+        replay.play();
         if (mediaSource.activeSourceBuffers.length == 0){
-            replay.play();
             sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
-            //replay.play();
-
         }
         recorder.start(100);
     });

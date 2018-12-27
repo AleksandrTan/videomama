@@ -27,6 +27,7 @@ class VAMainserverOne:
         self.mainsocket.listen(5)
         self.loger = LogServerOne()
         self.thread_lock = thread.allocate_lock()
+        self.thread_count = 0
 
     def startserver(self):
         print('Start server')
@@ -35,12 +36,14 @@ class VAMainserverOne:
             connection, address = self.mainsocket.accept()
             i += 1
             if address:
-                print('Start thread')
+                print('Start thread1')
+                print(self.thread_count)
+                self.thread_count += 1
                 thread.start_new_thread(self.getalk, (connection, ))
 
     def getalk(self, connection):
         while True:
-            data = connection.recv(6024).strip().decode('latin-1')
+            data = connection.recv(1024).strip().decode('latin-1')
             contacts_storage = MySqlStorage()
             if not data:
                 break
@@ -55,13 +58,12 @@ class VAMainserverOne:
                 self.handshake(key, connection)
                 while True:
                     try:
-                        dataGet = connection.recv(6024)
+                        dataGet = connection.recv(1024)
                         dataClean = self.decode_frame(dataGet)
                         # if reload brouser, close page or send "bye"
                         if dataClean['payload'] == b'\x03\xe9':
                             break
                         data_payload = json.loads(dataClean['payload'].decode())
-                        print(data_payload)
                         #if the user has finished work
                         if data_payload['status'] == 3:
                             with self.thread_lock:
@@ -78,15 +80,29 @@ class VAMainserverOne:
                             #file = open('my.mp4', 'wb')
                             while True:
                                 dataGetw = connection.recv(100000)
-                                dataCleanw = self.decode_frame(dataGetw)
-                                if dataCleanw:
-                                    #file.write(dataCleanw['payload'])
-                                    connection.send(self.send_frame(dataCleanw['payload'], 0x2))
-                                    #self.stopserver(connection)
-                                else:
-                                    continue
+                                dataCleans = self.decode_frame(dataGetw)
+                                print(dataCleans)
+                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1:
+                                    connection.send(self.send_frame(dataCleans['payload'], 0x2))
+                                elif dataCleans['opcode'] == 1:
+                                    data_payloads = json.loads(dataCleans['payload'].decode())
+                                    # if reload brouser, close page
+                                    if data_payloads['status'] == 3:
+                                        print('Thread close2')
+                                        connection.close()
+                                        self.thread_count -= 1
+                                        break
+                                    # if the user has finished work
+                                    if data_payloads['status'] == 8:
+                                        connection.close()
+                                        self.thread_count -= 1
+                                        break
+                                    #except (ConnectionAbortedError, UnicodeDecodeError, json.decoder.JSONDecodeError) as Error5:
+                            break
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
+                        print('Thread close4')
+                        self.thread_count -= 1
                         break
                 break
             else:
@@ -95,7 +111,9 @@ class VAMainserverOne:
                                 "Connection: close\r\n"
                                 "\r\n"
                                 "Incorrect request")
+                self.thread_count -= 1
                 return
+        self.thread_count -= 1
         return
 
     def handshake(self, key, connection):
@@ -115,6 +133,7 @@ class VAMainserverOne:
             byte1, byte2 = struct.unpack_from('!BB', data)
         else:
             return
+        print(byte1)
         frame['fin'] = (byte1 >> 7) & 1
         frame['opcode'] = byte1 & 0xf
         masked = (byte2 >> 7) & 1

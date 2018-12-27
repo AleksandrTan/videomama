@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^loginmam/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/loginmam'}, name='logout'),
-    url(r'^videostream/$', views.VideoStream.as_view(), name='videostream')
+    url(r'^videostream/$', views.VideoStream.as_view(), name='videostream'),
+    url(r'^vastream/$', views.VAStream.as_view(), name='vastream')
 ]

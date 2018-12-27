@@ -18,12 +18,18 @@
         let recorder;
         let mediaStream;
         let fileReader = new FileReader();
+        //let mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+        let mimeCodec = 'video/webm;codecs="vp8, opus"';
         let sourceBuffer;
         let mediaSource;
         let replay;
         let parent_div = document.getElementById('parent_div');
         let startButton = document.getElementById('record');
         let stopButton = document.getElementById('stop');
+
+        if (!'MediaSource' in window && !MediaSource.isTypeSupported(mimeCodec)) {
+            alert('Unsupported MIME type or codec: ', mimeCodec);
+        }
 
         function uas(str) {
             alert(navigator.userAgent);
@@ -70,7 +76,7 @@
         startButton.addEventListener('click', function (e) {
             mediaSource = new MediaSource();
             mediaSource.addEventListener('sourceopen', function () {
-                sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
+                sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
             });
             replay = document.createElement('video');
             parent_div.appendChild(replay);
