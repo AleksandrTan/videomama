@@ -29,6 +29,7 @@
       <w>startserver</w>
       <w>stopclient</w>
       <w>stopserver</w>
+      <w>stringstreamin</w>
       <w>subid</w>
       <w>subname</w>
       <w>subuser</w>

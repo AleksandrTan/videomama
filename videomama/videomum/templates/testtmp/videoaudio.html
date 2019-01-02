@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<video id="video" autoplay></video>
+<button id="unmuteButton">Go</button>
+<video id="blob-video"></video>
+<video id="blobs-video" controls autoplay></video>
+<canvas id="can" width="200" height="100"></canvas>
+<button id="record" name="button">start recording</button>
+<button id="stop" name="button">stop recording</button>
+<script>
+    (function () {
+    let recorder;
+    let mediaStream;
+    let fileName;
+    let connection;
+    let queue = [];
+    let reader = new FileReader();
+    let sourceBuffer;
+    let mediaSource = new MediaSource();
+    let replay = document.getElementById('blobs-video');
+    let startButton = document.getElementById('record');
+    let stopButton = document.getElementById('stop');
+    replay.src = window.URL.createObjectURL(mediaSource);
+
+    function getVideoStream() {
+        navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true
+        })
+        .then(function (stream) {
+            mediaStream = stream;
+            getRecorder();
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
+    }
+
+    function getRecorder() {
+        let options = { mimeType: 'video/webm', audioBitsPerSecond: 128000 };
+        recorder = new MediaRecorder(mediaStream, options);
+        recorder.ondataavailable = videoDataHandler;
+    }
+
+    function videoDataHandler(event) {
+        let fileReader = new FileReader();
+        fileReader.readAsArrayBuffer(event.data);
+        fileReader.onload = function() {
+            console.log(mediaSource.sourceBuffers.length+ 'hmbl');
+            console.log(mediaSource.activeSourceBuffers.length+ 'hambl');
+            sourceBuffer.appendBuffer(fileReader.result);
+        };
+    }
+
+    function getWebSocket() {
+        let websocketEndpoint = 'ws://localhost:7000';
+        connection = new WebSocket(websocketEndpoint);
+        connection.binaryType = 'arraybuffer';
+        connection.onmessage = function (message) {
+            fileName = message.data;
+        }
+    }
+
+    function updateVideoFile() {
+        let video = document.getElementById('recorded-video');
+        let fileLocation = 'http://localhost:7000/uploads/'
+            + fileName + '.webm';
+        video.setAttribute('src', fileLocation);
+    }
+
+    startButton.addEventListener('click', function (e) {
+        console.log(mediaSource.sourceBuffers);
+        console.log(mediaSource.readyState);
+        if (mediaSource.activeSourceBuffers.length == 0){
+            replay.play();
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
+        }
+        recorder.start(100);
+    });
+
+    stopButton.addEventListener('click', function (e) {
+        recorder.stop();
+        mediaSource.endOfStream();
+        setTimeout(function(){
+            if(mediaSource.activeSourceBuffers.length == 1){
+                mediaSource.removeSourceBuffer(sourceBuffer);
+                replay.src = '';
+                replay.src = window.URL.createObjectURL(mediaSource);
+            }
+        },
+            1000);
+    });
+
+    getVideoStream();
+})();
+</script>
+</body>
+</html>

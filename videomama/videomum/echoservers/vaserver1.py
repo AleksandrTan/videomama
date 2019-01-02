@@ -80,9 +80,19 @@ class VAMainserverOne:
                             #file = open('my.mp4', 'wb')
                             while True:
                                 dataGetw = connection.recv(100000)
+                                print(dataGetw, 90000000000)
                                 dataCleans = self.decode_frame(dataGetw)
                                 print(dataCleans)
-                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1:
+                                #pong
+                                if dataCleans['opcode'] == 9:
+                                    connection.send(self.send_frame(dataCleans['payload'], 0xA))
+                                #close connection with frame
+                                if dataCleans['opcode'] == 8:
+                                    print('Thread close2')
+                                    connection.close()
+                                    self.thread_count -= 1
+                                    break
+                                if dataCleans['opcode'] == 2:
                                     connection.send(self.send_frame(dataCleans['payload'], 0x2))
                                 elif dataCleans['opcode'] == 1:
                                     data_payloads = json.loads(dataCleans['payload'].decode())
@@ -129,11 +139,10 @@ class VAMainserverOne:
         frame = {}
         payload_length = ''
         payload_offset = ''
-        if data:
-            byte1, byte2 = struct.unpack_from('!BB', data)
-        else:
-            return
+        print(data)
+        byte1, byte2 = struct.unpack_from('!BB', data)
         print(byte1)
+        print(byte2)
         frame['fin'] = (byte1 >> 7) & 1
         frame['opcode'] = byte1 & 0xf
         masked = (byte2 >> 7) & 1
@@ -151,12 +160,12 @@ class VAMainserverOne:
             payload_length = struct.unpack_from('!Q', data, 2)[0]
         frame['length'] = payload_length
         payload = array.array('B')
-        payload.fromstring(data[payload_offset + mask_offset:])
+        payload.frombytes(data[payload_offset + mask_offset:])
         if masked:
             mask_bytes = struct.unpack_from('!BBBB', data, payload_offset)
             for i in range(len(payload)):
                 payload[i] ^= mask_bytes[i % 4]
-        frame['payload'] = payload.tostring()
+        frame['payload'] = payload.tobytes()
         return frame
 
     def send_frame(self, buf, opcode, base64=False):
