@@ -2,6 +2,7 @@
 """
 Server for video/audio messaging
 """
+import os
 from socket import *
 import hashlib
 import base64
@@ -11,6 +12,7 @@ from base64 import b64encode
 import _thread as thread
 import json
 
+from videomama import settings
 from videomum.logobject.logserver1 import LogServerOne
 from videomum.usercontacts.msdb.msdbcontacts import MySqlStorage
 from videomum.onlinestorage.liststorage import ListStorage
@@ -19,7 +21,7 @@ from videomum.onlinestorage.liststorage import ListStorage
 class VAMainserverOne:
     def __init__(self):
         self.myHost = '127.0.0.1'
-        self.myPort = 50008
+        self.myPort = 50009
         self.onlinestorage = ListStorage()
         self.magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
         self.mainsocket = socket(AF_INET, SOCK_STREAM)
@@ -65,7 +67,7 @@ class VAMainserverOne:
                             break
                         data_payload = json.loads(dataClean['payload'].decode())
                         #if the user has finished work
-                        if data_payload['status'] == 3:
+                        if data_payload['status'] == 3 or data_payload['status'] == 8:
                             with self.thread_lock:
                                 self.onlinestorage.deleteuserid(data_payload['userId'])
                             connection.close()
@@ -77,10 +79,10 @@ class VAMainserverOne:
                                 self.onlinestorage.checkuserid(data_payload['userId'])
                             #send answer
                             connection.send(self.send_frame(json.dumps({"status": 10, "id": 0}).encode(), 0x1))
+                            file = open(os.path.join(settings.BASE_DIR, 'media')+'\\myvideo.mp4', 'wb')
                             #file = open('my.mp4', 'wb')
                             while True:
                                 dataGetw = connection.recv(100000)
-                                print(dataGetw, 90000000000)
                                 dataCleans = self.decode_frame(dataGetw)
                                 print(dataCleans)
                                 #pong
@@ -93,6 +95,8 @@ class VAMainserverOne:
                                     self.thread_count -= 1
                                     break
                                 if dataCleans['opcode'] == 2:
+                                    #file.write(dataCleans['payload'])
+                                    #continue
                                     connection.send(self.send_frame(dataCleans['payload'], 0x2))
                                 elif dataCleans['opcode'] == 1:
                                     data_payloads = json.loads(dataCleans['payload'].decode())
@@ -139,10 +143,7 @@ class VAMainserverOne:
         frame = {}
         payload_length = ''
         payload_offset = ''
-        print(data)
         byte1, byte2 = struct.unpack_from('!BB', data)
-        print(byte1)
-        print(byte2)
         frame['fin'] = (byte1 >> 7) & 1
         frame['opcode'] = byte1 & 0xf
         masked = (byte2 >> 7) & 1
@@ -158,6 +159,7 @@ class VAMainserverOne:
         elif payload_hint == 127:
             payload_offset = 8
             payload_length = struct.unpack_from('!Q', data, 2)[0]
+        #print(payload_hint)
         frame['length'] = payload_length
         payload = array.array('B')
         payload.frombytes(data[payload_offset + mask_offset:])
@@ -173,6 +175,7 @@ class VAMainserverOne:
         if base64:
             buf = b64encode(buf)
         b1 = 0x80 | (opcode & 0x0f)  # FIN + opcode
+        #b1 = 0x80 | opcode  # FIN + opcode
         payload_len = len(buf)
         if payload_len <= 125:
             header = struct.pack('>BB', b1, payload_len)
@@ -180,6 +183,7 @@ class VAMainserverOne:
             header = struct.pack('>BBH', b1, 126, payload_len)
         elif payload_len >= 65536:
             header = struct.pack('>BBQ', b1, 127, payload_len)
+        #print(header, payload_len)
         return header + buf
 
     def stopserver(self, connection):

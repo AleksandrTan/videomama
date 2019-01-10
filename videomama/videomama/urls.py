@@ -19,6 +19,10 @@ from django.contrib.auth import views as auth_views
 
 from videomum import views
 
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^loginmam/$', auth_views.login, name='login'),
@@ -26,3 +30,6 @@ urlpatterns = [
     url(r'^videostream/$', views.VideoStream.as_view(), name='videostream'),
     url(r'^vastream/$', views.VAStream.as_view(), name='vastream')
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

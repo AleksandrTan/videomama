@@ -171,12 +171,12 @@ class Mainserver:
             payload_length = struct.unpack_from('!Q', data, 2)[0]
         frame['length'] = payload_length
         payload = array.array('B')
-        payload.fromstring(data[payload_offset + mask_offset:])
+        payload.frombytes(data[payload_offset + mask_offset:])
         if masked:
             mask_bytes = struct.unpack_from('!BBBB', data, payload_offset)
             for i in range(len(payload)):
                 payload[i] ^= mask_bytes[i % 4]
-        frame['payload'] = payload.tostring()
+        frame['payload'] = payload.tobytes()
         return frame
 
     def send_frame(self, buf, opcode, base64=False):

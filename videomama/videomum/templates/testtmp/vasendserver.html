@@ -23,18 +23,22 @@
     let startButton = document.getElementById('record');
     let stopButton = document.getElementById('stop');
     let queue = [];
+    let local_storage = [];
     replay.src = window.URL.createObjectURL(mediaSource);
     replay.addEventListener('error',function(e){ console.error(e); });
     //console.log(queue);
     function getSocketConnect() {
         let myHost = '127.0.0.1';
-        let myPort = 50008;
+        let myPort = 50009;
         connection = new WebSocket("ws://" + myHost + ":" + myPort);
         connection.binaryType = 'arraybuffer';
         return connection;
     }
 //Create socket object
     let sockConnect = getSocketConnect();
+    sockConnect.onerror = function(error) {
+     console.log("Error " + error.message);
+    };
 //open connection
     sockConnect.onopen = function(ws) {
         //console.log("Соединение открыто...");
@@ -56,7 +60,7 @@
               }
           }
           else {
-              queue.unshift(event.data);
+             queue.unshift(event.data);
           }
     };
     //Prepare data for service request
@@ -85,7 +89,9 @@
     }
 
     function getRecorder() {
-        let options = { mimeType: 'video/webm', audioBitsPerSecond: 128000 };
+        let options = { mimeType: 'video/webm',
+                        audioBitsPerSecond: 128000
+                      };
         recorder = new MediaRecorder(mediaStream, options);
         recorder.ondataavailable = videoDataHandler;
     }
@@ -103,8 +109,9 @@
     }
 
     startButton.addEventListener('click', function (e) {
-        replay.play();
+        //replay.play();
         if (mediaSource.activeSourceBuffers.length == 0){
+            replay.play();
             sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
         }
         recorder.start(100);
@@ -125,6 +132,11 @@
             1000);
     });
     getVideoStream();
+    //Close brouser or page
+        window.onbeforeunload = function () {
+            sockConnect.send(prepareData(3, 1));
+            sockConnect.close();
+        };
 })();
 </script>
 </body>

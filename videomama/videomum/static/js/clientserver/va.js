@@ -3,43 +3,8 @@
  */
 (function () {
 //////----------- Socket section------------------------------------////
-    let connection;
-    function getSocketConnect() {
-        let myHost = '127.0.0.1';
-        let myPort = 50008;
-        connection = new WebSocket("ws://" + myHost + ":" + myPort);
-        connection.binaryType = 'arraybuffer';
-        return connection;
-    }
-//Create socket object
-    let sockConnect = getSocketConnect();
-//open connection
-    sockConnect.onopen = function(ws) {
-        console.log("Соединение открыто...");
-        if(this.readyState == 1){
-            //send user id after establishing connection
-            setTimeout(function () {
-                sockConnect.send(prepareData(1, dataconnect.userId));
-                $('#serverStatus').text('Server connected...').css('color', 'green');
-                dataconnect.serverStatus = 1;
-                $('#closeButton').show();
-            }, 1000);
-        }
-    };
-    sockConnect.onmessage = function(event) {
-        let answer = JSON.parse(event.data);
-        //Get message
-        if(answer.status == 10){
-            console.log(event.data);
-        }
-    };
-
-    //Prepare data for service request
-    function prepareData(status, idUser, idContact=0) {
-        return '{"status":'+status+', "userId":'+idUser+', "idContact":'+idContact+'}';
-    }
-//////----------- Media section------------------------------------////
-
+    let connectionv;
+    let flag = 0;
     let recorder;
     let mediaStream;
     let fileReader = new FileReader();
@@ -48,6 +13,52 @@
     let replay = document.getElementById('blobs-video');
     let startButton = document.getElementById('record');
     let stopButton = document.getElementById('stop');
+    let queue = [];
+    let local_storage = [];
+    replay.src = window.URL.createObjectURL(mediaSource);
+    replay.addEventListener('error',function(e){ console.error(e); });
+    //console.log(queue);
+    function getSocketConnectv() {
+        let myHost = '127.0.0.1';
+        let myPort = 50009;
+        connectionv = new WebSocket("ws://" + myHost + ":" + myPort);
+        connectionv.binaryType = 'arraybuffer';
+        return connectionv;
+    }
+//Create socket object
+    let sockConnectV = getSocketConnectv();
+    sockConnectV.onerror = function(error) {
+     console.log("Error " + error.message);
+    };
+//open connection
+    sockConnectV.onopen = function(ws) {
+        //console.log("Соединение открыто...");
+        if(this.readyState == 1){
+            //send user id after establishing connection
+            setTimeout(function () {
+                sockConnectV.send(prepareData(1, 1));
+                //console.log("req");
+            }, 1000);
+        }
+    };
+    sockConnectV.onmessage = function(event) {
+          if (flag == 0){
+              let answer = JSON.parse(event.data);
+            //Get message
+              if(answer.status == 10){
+                  //console.log(event.data);
+                  flag = 1;
+              }
+          }
+          else {
+             queue.unshift(event.data);
+          }
+    };
+    //Prepare data for service request
+    function prepareData(status, idUser, idContact=0) {
+        return '{"status":'+status+', "userId":'+idUser+', "idContact":'+idContact+'}';
+    }
+//////----------- Media section------------------------------------////
 
     function uas(str) {
         alert(navigator.userAgent);
@@ -61,55 +72,60 @@
         })
         .then(function (stream) {
             mediaStream = stream;
-            //let a = document.getElementById('video');
-            //a.srcObject = stream;
-            //document.getElementById('blobs-video').srcObject =mediaStream;
-            replay.src = window.URL.createObjectURL(mediaSource);
-            replay.play();
             getRecorder();
         })
         .catch(function(err) {
-          console.log(err);
+            console.log(err);
         });
     }
 
     function getRecorder() {
-        let options = { mimeType: 'video/webm', audioBitsPerSecond: 128000 };
+        let options = { mimeType: 'video/webm',
+                        //audioBitsPerSecond: 128000
+                      };
         recorder = new MediaRecorder(mediaStream, options);
         recorder.ondataavailable = videoDataHandler;
     }
 
     function videoDataHandler(event) {
-        //let fileReader = new FileReader();
+        fileReader = new FileReader();
         fileReader.readAsArrayBuffer(event.data);
         fileReader.onload = function() {
-            sourceBuffer.appendBuffer(fileReader.result);
-            //connection.send(fileReader.result);
+            connectionv.send(fileReader.result);
+            //console.log(fileReader.result);
+            if (sourceBuffer.updating || queue.length > 0){
+                sourceBuffer.appendBuffer(queue.pop());
+            }
         };
     }
 
     startButton.addEventListener('click', function (e) {
-        getVideoStream();
-        setTimeout(function () {
-            recorder.start(5000);
-        }, 1000);
-        //if (mediaSource.activeSourceBuffers.length == 0){
-        //    sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
-        //}
-        //recorder.start(5000);
+        //replay.play();
+        if (mediaSource.activeSourceBuffers.length == 0){
+            replay.play();
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp8, opus"');
+        }
+        recorder.start(100);
     });
     stopButton.addEventListener('click', function (e) {
         recorder.stop();
+        replay.pause();
         mediaSource.endOfStream();
         setTimeout(function(){
             if(mediaSource.activeSourceBuffers.length == 1){
                 mediaSource.removeSourceBuffer(sourceBuffer);
                 replay.src = '';
+                //replay.src = window.URL.revokeObjectURL(mediaSource);
                 replay.src = window.URL.createObjectURL(mediaSource);
+                queue = [];
             }
         },
             1000);
     });
-    //getVideoStream();
-    //getWebSocket();
+    getVideoStream();
+    //Close brouser or page
+        window.onbeforeunload = function () {
+            sockConnectV.send(prepareData(3, 1));
+            sockConnectV.close();
+        };
 })();

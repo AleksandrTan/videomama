@@ -14,7 +14,6 @@
         let storage = [];
         let recorder;
         let mediaStream;
-        let connection;
         let fileReader = new FileReader();
         let sourceBuffer;
         let mediaSource = new MediaSource();
@@ -72,6 +71,7 @@
             }
             recorder.start(100);
         });
+
         stopButton.addEventListener('click', function (e) {
             recorder.stop();
             mediaSource.endOfStream();
