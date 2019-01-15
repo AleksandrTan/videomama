@@ -107,7 +107,7 @@
             if (recorder.state == 'recording'){
                 fileReader.readAsArrayBuffer(event.data);
                 fileReader.onload = function() {
-                    connection.send(fileReader.result);
+                    sockConnect.send(fileReader.result);
                     //storage.unshift(fileReader.result);
                     if (sourceBuffer.updating || storage.length > 0){
                         //console.log(1);

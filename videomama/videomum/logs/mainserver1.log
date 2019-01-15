@@ -1,1 +1,2 @@
 2019-01-03 13:53:12,200 - mainserver1 - INFO - [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+2019-01-15 12:29:28,271 - mainserver1 - INFO - 'utf-8' codec can't decode byte 0xa1 in position 16: invalid start byte

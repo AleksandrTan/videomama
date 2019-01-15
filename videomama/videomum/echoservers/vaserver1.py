@@ -79,10 +79,11 @@ class VAMainserverOne:
                                 self.onlinestorage.checkuserid(data_payload['userId'])
                             #send answer
                             connection.send(self.send_frame(json.dumps({"status": 10, "id": 0}).encode(), 0x1))
-                            file = open(os.path.join(settings.BASE_DIR, 'media')+'\\myvideo.mp4', 'wb')
+                            #file = open(os.path.join(settings.BASE_DIR, 'media')+'\\myvideo.mp4', 'wb')
                             #file = open('my.mp4', 'wb')
                             while True:
                                 dataGetw = connection.recv(100000)
+                                #print(dataGetw)
                                 dataCleans = self.decode_frame(dataGetw)
                                 print(dataCleans)
                                 #pong
@@ -94,24 +95,45 @@ class VAMainserverOne:
                                     connection.close()
                                     self.thread_count -= 1
                                     break
-                                if dataCleans['opcode'] == 2:
+
+                                # if dataCleans['opcode'] == 2 and dataCleans['fin'] == 0:
+                                #     chunk_frame = dataCleans['payload']
+                                #     continue
+                                #
+                                # if dataCleans['opcode'] == 0 and dataCleans['fin'] == 1 and chunk_frame:
+                                #     chunk_frame += dataCleans['payload']
+                                #     connection.send(self.send_frame(chunk_frame, 0x2))
+                                #     chunk_frame = ''
+                                #     continue
+                                # #the frame does not contain continuation(came all the data)
+                                # if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1 and dataCleans['length'] > 65536:
+                                #     connection.send(
+                                #         self.send_frame(dataCleans['payload'][0:len(dataCleans['payload'])//2], 0x2))
+                                #     connection.send(
+                                #         self.send_frame(dataCleans['payload'][len(dataCleans['payload']) // 2:], 0x2))
+                                #     continue
+                                # the frame does not contain continuation(came all the data)
+                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1:
                                     #file.write(dataCleans['payload'])
-                                    #continue
                                     connection.send(self.send_frame(dataCleans['payload'], 0x2))
+                                    continue
                                 elif dataCleans['opcode'] == 1:
-                                    data_payloads = json.loads(dataCleans['payload'].decode())
-                                    # if reload brouser, close page
-                                    if data_payloads['status'] == 3:
-                                        print('Thread close2')
-                                        connection.close()
-                                        self.thread_count -= 1
-                                        break
-                                    # if the user has finished work
-                                    if data_payloads['status'] == 8:
-                                        connection.close()
-                                        self.thread_count -= 1
-                                        break
-                                    #except (ConnectionAbortedError, UnicodeDecodeError, json.decoder.JSONDecodeError) as Error5:
+                                    try:
+                                        data_payloads = json.loads(dataCleans['payload'].decode())
+                                        # if reload brouser, close page
+                                        if data_payloads['status'] == 3:
+                                            print('Thread close2')
+                                            connection.close()
+                                            self.thread_count -= 1
+                                            break
+                                        # if the user has finished work
+                                        if data_payloads['status'] == 8:
+                                            connection.close()
+                                            self.thread_count -= 1
+                                            break
+                                    except (ConnectionAbortedError, UnicodeDecodeError, json.decoder.JSONDecodeError) as Error5:
+                                        self.loger.set_log(Error5)
+                                        continue
                             break
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
@@ -159,7 +181,6 @@ class VAMainserverOne:
         elif payload_hint == 127:
             payload_offset = 8
             payload_length = struct.unpack_from('!Q', data, 2)[0]
-        #print(payload_hint)
         frame['length'] = payload_length
         payload = array.array('B')
         payload.frombytes(data[payload_offset + mask_offset:])
@@ -183,7 +204,6 @@ class VAMainserverOne:
             header = struct.pack('>BBH', b1, 126, payload_len)
         elif payload_len >= 65536:
             header = struct.pack('>BBQ', b1, 127, payload_len)
-        #print(header, payload_len)
         return header + buf
 
     def stopserver(self, connection):

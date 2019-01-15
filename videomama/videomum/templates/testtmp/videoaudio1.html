@@ -15,7 +15,6 @@
         let storage = [];
         let recorder;
         let mediaStream;
-        let fileReader = new FileReader();
         //let mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
         let mimeCodec = 'video/webm;codecs="vp8, opus"';
         let sourceBuffer;
@@ -44,18 +43,21 @@
                 mediaStream = stream;
                 mediaSource = new MediaSource();
                 replay = document.createElement('video');
-                parent_div.appendChild(replay);
                 replay.src = window.URL.createObjectURL(mediaSource);
                 replay.play();
+                parent_div.appendChild(replay);
                 mediaSource.addEventListener('sourceopen', function () {
                     sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+                    console.log(sourceBuffer);
                     getRecorder();
                     recorder.start(100);
                 });
                 myvideo = document.createElement('video');
-                parent_div1.appendChild(myvideo);
                 myvideo.srcObject = stream;
+                parent_div1.appendChild(myvideo);
                 myvideo.play();
+                console.log(mediaSource);
+                console.log(sourceBuffer);
             })
             .catch(function(err) {
                 console.log(err);
@@ -78,6 +80,7 @@
 
         function videoDataHandler(event) {
             if (recorder.state == 'recording'){
+                let fileReader = new FileReader();
                 fileReader.readAsArrayBuffer(event.data);
                 fileReader.onload = function() {
                     storage.unshift(fileReader.result);
@@ -93,6 +96,8 @@
 
         stopButton.addEventListener('click', function (e) {
             recorder.stop();
+            console.log(mediaSource);
+                console.log(sourceBuffer);
         });
 
         //getVideoStream();
