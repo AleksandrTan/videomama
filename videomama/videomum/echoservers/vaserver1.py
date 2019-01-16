@@ -96,22 +96,26 @@ class VAMainserverOne:
                                     self.thread_count -= 1
                                     break
 
-                                # if dataCleans['opcode'] == 2 and dataCleans['fin'] == 0:
-                                #     chunk_frame = dataCleans['payload']
-                                #     continue
-                                #
-                                # if dataCleans['opcode'] == 0 and dataCleans['fin'] == 1 and chunk_frame:
-                                #     chunk_frame += dataCleans['payload']
-                                #     connection.send(self.send_frame(chunk_frame, 0x2))
-                                #     chunk_frame = ''
-                                #     continue
-                                # #the frame does not contain continuation(came all the data)
-                                # if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1 and dataCleans['length'] > 65536:
-                                #     connection.send(
-                                #         self.send_frame(dataCleans['payload'][0:len(dataCleans['payload'])//2], 0x2))
-                                #     connection.send(
-                                #         self.send_frame(dataCleans['payload'][len(dataCleans['payload']) // 2:], 0x2))
-                                #     continue
+                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 0:
+                                    chunk_frame = dataCleans['payload']
+                                    continue
+
+                                if dataCleans['opcode'] == 0 and dataCleans['fin'] == 1 and chunk_frame:
+                                    chunk_frame += dataCleans['payload']
+                                    connection.send(self.send_frame(chunk_frame, 0x2))
+                                    chunk_frame = ''
+                                    continue
+                                #the frame does not contain continuation(came all the data)
+                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1 and dataCleans['length'] > 65536:
+                                    # s1 = dataCleans['payload'][0:len(dataCleans['payload'])//2]
+                                    # print(s1)
+                                    # connection.send(
+                                    #     self.send_frame(s1, 0x2))
+                                    # connection.send(
+                                    #     self.send_frame(dataCleans['payload'][len(dataCleans['payload']) // 2:], 0x2))
+                                    print(dataCleans['payload'])
+                                    connection.send(self.send_frame(dataCleans['payload'], 0x2))
+                                    continue
                                 # the frame does not contain continuation(came all the data)
                                 if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1:
                                     #file.write(dataCleans['payload'])

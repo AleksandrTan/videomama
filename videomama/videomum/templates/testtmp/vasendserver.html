@@ -131,18 +131,21 @@
                 let fileReader = new FileReader();
                 fileReader.readAsArrayBuffer(event.data);
                 fileReader.onload = function() {
-                    sockConnect.send(fileReader.result);
+                    s = fileReader.result;
+                    console.log(s);
+                    sockConnect.send(s);
                     if (sourceBuffer.updating || storage.length > 0){
+                        k = storage.pop();
+                        console.log(k);
                         try{
-                            k = storage.pop();
                             sourceBuffer.appendBuffer(k);
-                            console.log(k);
                         }
                         catch (m){
                             console.log(m);
                         }
                         //sourceBuffer.appendBuffer(storage.pop());
                     }
+
                 };
             }
         }
