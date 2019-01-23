@@ -50,14 +50,17 @@
                     sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
                     console.log(sourceBuffer);
                     getRecorder();
-                    recorder.start(100);
+                    setTimeout(function () {
+                        recorder.start(100);
+                    }, 1000);
+                    //recorder.start(100);
                 });
                 myvideo = document.createElement('video');
                 myvideo.srcObject = stream;
                 parent_div1.appendChild(myvideo);
                 myvideo.play();
-                console.log(mediaSource);
-                console.log(sourceBuffer);
+                ///console.log(mediaSource);
+                //console.log(sourceBuffer);
             })
             .catch(function(err) {
                 console.log(err);
@@ -75,6 +78,7 @@
                 sourceBuffer = '';
                 replay.remove();
                 myvideo.remove();
+                storage  = [];
             });
         }
 
@@ -84,7 +88,8 @@
                 fileReader.readAsArrayBuffer(event.data);
                 fileReader.onload = function() {
                     storage.unshift(fileReader.result);
-                    if (sourceBuffer.updating || storage.length > 0){
+                    console.log(storage);
+                    if (storage.length > 0){
                         sourceBuffer.appendBuffer(storage.pop());
                     }
                 };

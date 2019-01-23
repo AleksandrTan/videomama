@@ -20,10 +20,12 @@
     let recorder;
     let mediaStream;
     //let mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
-    let mimeCodec = 'video/webm;codecs="vp8, opus"';
-    let mimeTypes = 'video/webm';
-    //let mimeCodec = 'audio/webm;codecs="opus"';
-    //let mimeTypes = 'audio/webm';
+    //let mimeCodec = 'video/webm;codecs="vp8, opus"';
+    //let mimeTypes = 'video/webm';
+    let is_video = false;
+    let is_audio = true;
+    let mimeCodec = 'audio/webm;codecs="opus"';
+    let mimeTypes = 'audio/webm';
     let sourceBuffer;
     let mediaSource;
     let replay;
@@ -81,13 +83,14 @@
 
     function getVideoStream() {
             navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: true
+                audio: is_audio,
+                video: is_video
             })
             .then(function (stream) {
                 mediaStream = stream;
                 mediaSource = new MediaSource();
-                replay = document.createElement('video');
+                replay = (is_video)?document.createElement('video'):document.createElement('audio');
+                replay.setAttribute('controls', 'controls');
                 replay.src = window.URL.createObjectURL(mediaSource);
                 replay.load();
                 replay.play();
@@ -96,7 +99,10 @@
                     if (stream){
                         sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
                         getRecorder();
-                        recorder.start(100);
+                        setTimeout(function () {
+                            recorder.start(100);
+                        }, 1000);
+                        //recorder.start(100);
                     }
 
                 });

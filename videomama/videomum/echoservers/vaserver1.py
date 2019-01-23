@@ -86,9 +86,15 @@ class VAMainserverOne:
                                 #print(dataGetw)
                                 dataCleans = self.decode_frame(dataGetw)
                                 print(dataCleans)
+                                # the frame does not contain continuation(came all the data)
+                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1:
+                                    # file.write(dataCleans['payload'])
+                                    connection.send(self.send_frame(dataCleans['payload'], 0x2))
+                                    continue
                                 #pong
                                 if dataCleans['opcode'] == 9:
                                     connection.send(self.send_frame(dataCleans['payload'], 0xA))
+                                    continue
                                 #close connection with frame
                                 if dataCleans['opcode'] == 8:
                                     print('Thread close2')
@@ -114,11 +120,6 @@ class VAMainserverOne:
                                     # connection.send(
                                     #     self.send_frame(dataCleans['payload'][len(dataCleans['payload']) // 2:], 0x2))
                                     print(dataCleans['payload'])
-                                    connection.send(self.send_frame(dataCleans['payload'], 0x2))
-                                    continue
-                                # the frame does not contain continuation(came all the data)
-                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1:
-                                    #file.write(dataCleans['payload'])
                                     connection.send(self.send_frame(dataCleans['payload'], 0x2))
                                     continue
                                 elif dataCleans['opcode'] == 1:
