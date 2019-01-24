@@ -3,7 +3,7 @@ html,
 body,
 div,
 span {
-  /*height: 100%;*/
+  height: 100%;
   width: 100%;
   overflow: hidden;
   padding: 0;
@@ -315,7 +315,7 @@ body {
 .message {
   padding: 0 !important;
   margin: 0 !important;
-  background: url("w.jpg") no-repeat fixed center;
+  /*background: url("w.jpg") no-repeat fixed center;*/
   background-size: cover;
   overflow-y: auto;
   border: 1px solid #f7f7f7;

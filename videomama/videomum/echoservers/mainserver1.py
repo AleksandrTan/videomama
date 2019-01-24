@@ -62,6 +62,7 @@ class Mainserver:
                         # if reload brouser, close page or send "bye"
                         if dataClean['payload'] == b'\x03\xe9':
                             break
+
                         data_payload = json.loads(dataClean['payload'].decode())
                         #if the user has finished work
                         if data_payload['status'] == 3:

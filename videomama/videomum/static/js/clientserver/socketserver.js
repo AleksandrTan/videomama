@@ -56,9 +56,10 @@ function prepareDataMessage(status, idUser, subId=0, message='', userName='') {
 }
 //send message
 function sendMessage() {
-    let sendText =  $('#dataSend').val();
+    let sendText =  $('#dataSend').val().replace(/"/g, "'");
     if (dataconnect.activTouchId && sendText){
         let getText = $('#dataGet').text();
+        console.log(sendText);
         sockConnect.send(prepareDataMessage(2, dataconnect.userId, dataconnect.activTouchId, sendText, dataconnect.userName));
         $('#dataGet').text(getText + currentTime() + ' ' + dataconnect.userName + ':' +sendText + '\n');
         $('#dataSend').val('');
