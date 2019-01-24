@@ -62,7 +62,6 @@ class Mainserver:
                         # if reload brouser, close page or send "bye"
                         if dataClean['payload'] == b'\x03\xe9':
                             break
-
                         data_payload = json.loads(dataClean['payload'].decode())
                         #if the user has finished work
                         if data_payload['status'] == 3:
@@ -82,8 +81,9 @@ class Mainserver:
                                 contacts_online['isset_messages'] = self.message_storage.get_other_messages(data_payload['userId'])
                             #send answer
                             connection.send(self.send_frame(json.dumps(contacts_online).encode(), 0x1))
+                            continue
                         # send users contacts online, check new messages
-                        if data_payload['status'] == 4 or data_payload['status'] == 6:
+                        if data_payload['status'] == 6:
                             with self.thread_lock:
                                 #user data (all contacts, contacts online)
                                 contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
@@ -92,6 +92,7 @@ class Mainserver:
                                 contacts_online['isset_messages'] = self.message_storage.get_other_messages(data_payload['userId'])
                             #send answer
                             connection.send(self.send_frame(json.dumps(contacts_online).encode(), 0x1))
+                            continue
                         #get message and send a reply message
                         if data_payload['status'] == 2:
                             try:
@@ -99,6 +100,7 @@ class Mainserver:
                                     self.message_storage.save_message(data_payload['whom_id'], data_payload['text_message'],
                                                                       data_payload['from_id'], data_payload['from_name'])
                                 #connection.send(self.send_frame(message.encode(), 0x1))
+                                continue
                             except ConnectionAbortedError as Error1:
                                 self.loger.set_log(Error1)
                                 break
@@ -113,6 +115,7 @@ class Mainserver:
                                 message = {"status": 7, "messages_contact": messages,
                                            "subId": str(data_payload['idContact']), 'message_history': messages_history}
                                 connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
+                                continue
                             except ConnectionAbortedError as Error7:
                                 self.loger.set_log(Error7)
                                 break
@@ -125,6 +128,7 @@ class Mainserver:
                                 message = {"status": 8, "messages_contact": messages,
                                            "subId": str(data_payload['idContact'])}
                                 connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
+                                continue
                             except ConnectionAbortedError as Error8:
                                 self.loger.set_log(Error8)
                                 break

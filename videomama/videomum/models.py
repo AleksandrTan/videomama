@@ -14,6 +14,9 @@ class Contacts(models.Model):
     date_create = models.DateTimeField(auto_now_add=True)
     objects = ManageContacts()
 
+    def __str__(self):  # __unicode__ on Python 2
+        return self.user.username
+
 
 class ManageMessages(models.Manager):
     pass
