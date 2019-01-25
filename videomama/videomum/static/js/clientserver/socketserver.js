@@ -120,6 +120,7 @@ function showHistory(answer) {
                 + answer.message_history[key]['from_name'] + ' : ' + answer.message_history[key]['text_message'] + '\n'
         }
         $('#dataGet').text(isset_text + new_messages);
+       $("#" + answer.subId + "").find("span").text('');
    }
 }
 //Parse list users online
@@ -255,8 +256,15 @@ sockConnect.onmessage = function(event) {
         parseOnlineTimer(answer.online, answer.allcontacts, answer.isset_messages);
     }
     else if (answer.status == 7){
-        showMesActivate(answer);
-        showHistory(answer);
+        console.log(answer);
+        if (!$.isEmptyObject(answer.message_history)){
+            showHistory(answer);
+        }
+        else {
+            showMesActivate(answer);
+        }
+        //showMesActivate(answer);
+        //showHistory(answer);
         $('#hellopreloader_preload').css({'display':'none', 'opacity': '0.5'});
     }
     else if (answer.status == 8){
