@@ -2,6 +2,8 @@
 """
 Server for text messaging
 """
+import sys
+import os
 from socket import *
 import hashlib
 import base64
@@ -10,6 +12,8 @@ import array
 from base64 import b64encode
 import _thread as thread
 import json
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from videomum.usercontacts.msdb.msdbcontacts import MySqlStorage
 from videomum.onlinestorage.liststorage import ListStorage
