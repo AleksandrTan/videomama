@@ -2,8 +2,8 @@
 """
 Server for text messaging
 """
-import sys
-import os
+# import sys
+# import os
 from socket import *
 import hashlib
 import base64
@@ -13,11 +13,12 @@ from base64 import b64encode
 import _thread as thread
 import json
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+#sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from videomum.usercontacts.msdb.msdbcontacts import MySqlStorage
 from videomum.onlinestorage.liststorage import ListStorage
 from videomum.messagestorage.mststorage.msststorage import MSMessagtStorage
+from videomum.sockonlinestorage.dictstorage import DictStorage
 from videomum.logobject.logserver1 import LogServerOne
 
 
@@ -27,6 +28,7 @@ class Mainserver:
         self.myPort = 50007
         self.onlinestorage = ListStorage()
         self.message_storage = MSMessagtStorage()
+        self.socket_storage = DictStorage()
         self.magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
         self.mainsocket = socket(AF_INET, SOCK_STREAM)
         self.mainsocket.bind((self.myHost, self.myPort))
@@ -36,12 +38,14 @@ class Mainserver:
 
     def startserver(self):
         print('Start server')
+        print(self.socket_storage)
         i = 0
         while True:
             connection, address = self.mainsocket.accept()
             i += 1
             if address:
                 print('Start thread')
+                print(self.socket_storage)
                 thread.start_new_thread(self.getalk, (connection, ))
 
     def getalk(self, connection):
@@ -78,6 +82,7 @@ class Mainserver:
                             with self.thread_lock:
                                 # check if there is a user in the repository online
                                 self.onlinestorage.checkuserid(data_payload['userId'])
+                                self.socket_storage.adduserid(data_payload['userId'], connection)
                                 #user data (all contacts, contacts online)
                                 contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
                                                                        self.onlinestorage.get_storage(), data_payload['status'])
