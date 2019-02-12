@@ -1,5 +1,5 @@
 """
-Access to the repository of users who are online based on dict
+Access to the repository of users socket objects who are online based on dict
 """
 
 from videomum.sockonlinestorage.interstorage import SuperStorage
@@ -27,7 +27,7 @@ class DictStorage(SuperStorage):
         try:
             return self.storage[userid]
         except KeyError:
-            pass
+            return False,
 
     # Returns a repository of users on the network as an iterable object containing the user id
     def get_storage(self) -> iter:

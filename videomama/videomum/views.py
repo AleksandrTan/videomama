@@ -10,5 +10,5 @@ class VideoStream(LoginRequiredMixin, TemplateView):
 
 class VAStream(LoginRequiredMixin, TemplateView):
     login_url = 'login'
-    template_name = 'testtmp/vasendserver.html'
+    template_name = 'videostream1.html'
     #template_name = 'videostream.html'

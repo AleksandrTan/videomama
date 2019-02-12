@@ -8,7 +8,7 @@ from videomum.messagestorage.intermesstorage import SuperMesStorage
 from videomum.usercontacts.msdb.models import Messages
 
 
-class MSMessagtStorage(SuperMesStorage):
+class MSMessageStorage(SuperMesStorage):
 
     def get_messages(self, whom_id: int, from_id: int) -> dict:
         messages = {m['id']: m for m in Messages.select().where((Messages.whom_id == whom_id)
@@ -60,7 +60,7 @@ class MSMessagtStorage(SuperMesStorage):
         return {m['id']: m for m in query}
 
 if __name__ == "__main__":
-    data = MSMessagtStorage()
+    data = MSMessageStorage()
     #data.save_message(1, 'Hello!!!', 3, 'Ylia2018')
     #data.get_messages(2)
     #data.update_messages(1, 3)

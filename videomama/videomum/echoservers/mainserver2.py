@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
 Server for text messaging
-Checking the incoming messages of the active user is performed by periodically checking the message store.
 """
 # import sys
 # import os
@@ -18,21 +17,23 @@ import json
 
 from videomum.usercontacts.msdb.msdbcontacts import MySqlStorage
 from videomum.onlinestorage.liststorage import ListStorage
-from videomum.messagestorage.mststorage.msststorage import MSMessagtStorage
+from videomum.messagestorage.mststorage.msstorageone import MSMessageStorage
+from videomum.sockonlinestorage.dictstorage import DictStorage
 from videomum.logobject.logserver1 import LogServerOne
 
 
 class Mainserver:
-    def __init__(self):
+    def __init__(self, onlinestorage, message_storage, socket_storage, loger):
         self.myHost = '127.0.0.1'
         self.myPort = 50007
-        self.onlinestorage = ListStorage()
-        self.message_storage = MSMessagtStorage()
+        self.onlinestorage = onlinestorage
+        self.message_storage = message_storage
+        self.socket_storage = socket_storage
         self.magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
         self.mainsocket = socket(AF_INET, SOCK_STREAM)
         self.mainsocket.bind((self.myHost, self.myPort))
         self.mainsocket.listen(5)
-        self.loger = LogServerOne()
+        self.loger = loger
         self.thread_lock = thread.allocate_lock()
 
     def startserver(self):
@@ -72,6 +73,7 @@ class Mainserver:
                         if data_payload['status'] == 3:
                             with self.thread_lock:
                                 self.onlinestorage.deleteuserid(data_payload['userId'])
+                                self.socket_storage.deleteuserid(data_payload['userId'])
                             connection.close()
                             break
                         # connections established, write user id to user online storage
@@ -79,6 +81,7 @@ class Mainserver:
                             with self.thread_lock:
                                 # check if there is a user in the repository online
                                 self.onlinestorage.checkuserid(data_payload['userId'])
+                                self.socket_storage.adduserid(data_payload['userId'], connection)
                                 #user data (all contacts, contacts online)
                                 contacts_online = self.contacts_online(contacts_storage.get_all_contacts(data_payload['userId']),
                                                                        self.onlinestorage.get_storage(), data_payload['status'])
@@ -98,17 +101,33 @@ class Mainserver:
                             #send answer
                             connection.send(self.send_frame(json.dumps(contacts_online).encode(), 0x1))
                             continue
-                        #get message and send a reply message
+                        #get message (and send a reply message to addressee)
                         if data_payload['status'] == 2:
                             try:
                                 with self.thread_lock:
+                                    #save message
                                     self.message_storage.save_message(data_payload['whom_id'], data_payload['text_message'],
                                                                       data_payload['from_id'], data_payload['from_name'])
+                                    #check if user online
+                                    whom_id_socket = self.socket_storage.getusersdata(data_payload['whom_id'])
+                                if whom_id_socket[0]:
+                                    messages = self.message_storage.get_messages(data_payload['whom_id'],
+                                                                                 data_payload['from_id'])
+                                    message = {"status": 2, "messages_contact": messages,
+                                               "subId": str(data_payload['whom_id'])}
+                                    whom_id_socket[1].send(self.send_frame(json.dumps(message).encode(), 0x1))
                                 #connection.send(self.send_frame(message.encode(), 0x1))
                                 continue
                             except ConnectionAbortedError as Error1:
                                 self.loger.set_log(Error1)
                                 break
+                        #change the status of the read message
+                        if data_payload['status'] == 22:
+                            with self.thread_lock:
+                                # change status read message
+                                self.message_storage.update_message(data_payload['whom_id'], data_payload['from_id'],
+                                                                  data_payload['id_message'])
+                            continue
                         # send messages from active contact
                         if data_payload['status'] == 7:
                             try:
@@ -223,5 +242,5 @@ class Mainserver:
 
 #start server
 if __name__ == '__main__':
-    mainServer = Mainserver()
+    mainServer = Mainserver(ListStorage(), MSMessageStorage(), DictStorage(), LogServerOne())
     mainServer.startserver()
