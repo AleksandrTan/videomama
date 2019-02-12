@@ -88,6 +88,35 @@ function prepareData(status, idUser, idContact=0) {
 function prepareDataConfirm(status, idUser, idContact=0, id_message=0) {
     return '{"status":'+status+', "whom_id":'+idUser+', "from_id":'+idContact+', "id_message":'+id_message+'}';
 }
+//Show message from active(number from not active contact)
+function showMessage(answer) {
+    let text = $('#dataGet').text();
+        //if isset message(messages)
+        if (answer.messages_contact){
+            let new_messages = '';
+            for (let key in answer.messages_contact){
+                if (dataconnect.activTouchId == answer.messages_contact[key]['from_id'] ){
+                    new_messages = new_messages + answer.messages_contact[key]['time_create'] + ' '
+                        +  answer.messages_contact[key]['from_name'] + ' : ' +
+                        answer.messages_contact[key]['text_message'] + '\n';
+                    //send confirm
+                    sockConnect.send(prepareDataConfirm(22, dataconnect.userId, answer.messages_contact[key]['from_id'],
+                    key));
+                }
+                else {
+                    let count_mes = $("#" + answer.messages_contact[key]['from_id'] + "").find("span").text();
+                    console.log(count_mes);
+                    if (count_mes != ''){
+                        $("#" + answer.messages_contact[key]['from_id'] + "").find("span").text( parseInt(count_mes) + 1);
+                    }
+                    else {
+                        $("#" + answer.messages_contact[key]['from_id'] + "").find("span").text(1);
+                    }
+                }
+            }
+            $('#dataGet').text(text + new_messages);
+        }
+}
 //Show messages from activate contact(status - 7)
 function showMesActivate(answer) {
    $('#dataGet').text('');
@@ -240,35 +269,9 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
 //Get server response
 sockConnect.onmessage = function(event) {
     let answer = JSON.parse(event.data);
-    console.log(answer);
     //Get message
     if(answer.status == 2){
-        console.log(answer);
-        let text = $('#dataGet').text();
-        //if isset message(messages)
-        if (answer.messages_contact){
-            let new_messages = '';
-            for (let key in answer.messages_contact){
-                if (dataconnect.activTouchId == answer.messages_contact[key]['from_id'] ){
-                    new_messages = new_messages + answer.messages_contact[key]['time_create'] + ' '
-                        +  answer.messages_contact[key]['from_name'] + ' : ' +
-                        answer.messages_contact[key]['text_message'] + '\n';
-                    sockConnect.send(prepareDataConfirm(22, dataconnect.userId, answer.messages_contact[key]['from_id'],
-                    key));
-                }
-                else {
-                    let count_mes = $("#" + answer.messages_contact[key]['from_id'] + "").find("span").text();
-                    console.log(count_mes);
-                    if (count_mes != ''){
-                        $("#" + answer.messages_contact[key]['from_id'] + "").find("span").text( parseInt(count_mes) + 1);
-                    }
-                    else {
-                        $("#" + answer.messages_contact[key]['from_id'] + "").find("span").text(1);
-                    }
-                }
-            }
-            $('#dataGet').text(text + new_messages);
-        }
+        showMessage(answer);
     }
     //Get users online after establishing connection with servers
     else if((answer.status == 4) || (answer.status == 5)){
@@ -290,9 +293,9 @@ sockConnect.onmessage = function(event) {
         //showHistory(answer);
         $('#hellopreloader_preload').css({'display':'none', 'opacity': '0.5'});
     }
-    else if (answer.status == 8){
-        showMesActive(answer);
-    }
+    //else if (answer.status == 8){
+    //    showMesActive(answer);
+    //}
     else if (answer.status == 9){
         let video = document.querySelector('video');
         console.log(answer.message);
