@@ -1,10 +1,6 @@
 /**
  * Created by user on 05.02.2019.
  */
-/**
- * Created by AlexTan on 26.11.2018.
- */
-
 (function(){
 function getSocketConnect(){
     let myHost = '127.0.0.1';
