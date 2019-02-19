@@ -320,7 +320,6 @@ window.onbeforeunload = function () {
     sockConnect.send(prepareData(3, dataconnect.userId));
     sockConnect.close();
 };
-
 sockConnect.onclose = function(event) {
     if (this.readyState == 2 || this.readyState == 3) {
         $('#serverStatus').text('Server is not available...').css('color', 'red');

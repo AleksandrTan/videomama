@@ -51,12 +51,11 @@
     };
 //open connection
     sockConnect.onopen = function(ws) {
-        //console.log("Соединение открыто...");
+        console.log("Соединение открыто...");
         if(this.readyState == 1){
             //send user id after establishing connection
             setTimeout(function () {
                 sockConnect.send(prepareData(1, 1));
-                //console.log("req");
             }, 1000);
         }
     };
@@ -65,7 +64,6 @@
               let answer = JSON.parse(event.data);
             //Get message
               if(answer.status == 10){
-                  //console.log(event.data);
                   flag = 1;
               }
           }
@@ -115,7 +113,7 @@
             });
         }
 
-        function getRecorder() {
+    function getRecorder() {
             let mimeTypes = (is_video)?mimeTypesVideo:mimeTypesAudio;
             let options = { mimeType: mimeTypes, audioBitsPerSecond: 128000 };
             recorder = new MediaRecorder(mediaStream, options);
@@ -127,11 +125,12 @@
                 sourceBuffer = '';
                 mediaStream = '';
                 replay.remove();
+                flag = 0;
                 storage = [];
             });
         }
 
-        function videoDataHandler(event) {
+    function videoDataHandler(event) {
             if (recorder.state == 'recording'){
                 let fileReader = new FileReader();
                 fileReader.readAsArrayBuffer(event.data);
@@ -154,15 +153,15 @@
                 };
             }
         }
-        startButton.addEventListener('click', function (e) {
+    startButton.addEventListener('click', function (e) {
             getVideoStream();
         });
 
-        stopButton.addEventListener('click', function (e) {
+    stopButton.addEventListener('click', function (e) {
             recorder.stop();
         });
     //Close brouser or page
-        window.onbeforeunload = function () {
+    window.onbeforeunload = function () {
             sockConnect.send(prepareData(3, 1));
             sockConnect.close();
         };
