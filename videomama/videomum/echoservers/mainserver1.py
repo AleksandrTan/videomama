@@ -68,6 +68,7 @@ class Mainserver:
                         # if reload brouser, close page or send "bye"
                         if dataClean['payload'] == b'\x03\xe9':
                             break
+                        print(dataClean['payload'])
                         data_payload = json.loads(dataClean['payload'].decode())
                         #if the user has finished work
                         if data_payload['status'] == 3:
@@ -143,19 +144,23 @@ class Mainserver:
                             except ConnectionAbortedError as Error7:
                                 self.loger.set_log(Error7)
                                 break
-                        # check messages from active contact
-                        # if data_payload['status'] == 8:
-                        #     try:
-                        #         with self.thread_lock:
-                        #             messages = self.message_storage.get_messages(data_payload['userId'],
-                        #                                                          data_payload['idContact'])
-                        #         message = {"status": 8, "messages_contact": messages,
-                        #                    "subId": str(data_payload['idContact'])}
-                        #         connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
-                        #         continue
-                        #     except ConnectionAbortedError as Error8:
-                        #         self.loger.set_log(Error8)
-                        #         break
+                        #call request received
+                        if data_payload['status'] == 11:
+                            try:
+                                with self.thread_lock:
+                                    #check if user online
+                                    whom_id_socket = self.socket_storage.getusersdata(data_payload['idContact'])
+                                if whom_id_socket[0]:
+                                    message = {"status": 12, "userId": int(data_payload['userId']),
+                                               "nameUser": str(data_payload['nameUser'])}
+                                    whom_id_socket[1].send(self.send_frame(json.dumps(message).encode(), 0x1))
+                                else:
+                                    message = {"status": 31}
+                                    connection.send(self.send_frame(json.dumps(message).encode(), 0x1))
+                                continue
+                            except ConnectionAbortedError as Error1:
+                                self.loger.set_log(Error1)
+                                break
                     except ConnectionAbortedError as Error2:
                         self.loger.set_log(Error2)
                         break

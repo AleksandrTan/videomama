@@ -29,6 +29,7 @@
 </head>
 <body>
 <video autoplay></video>
+<!--Modal window for messages alerts-->
 <div class="modal" tabindex="-1" role="dialog" id="myModal">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -39,11 +40,48 @@
         </button>
       </div>
       <div class="modal-body">
-        <p>Choose any contact.</p>
+        <p>Choose any active contact please!</p>
       </div>
       <div class="modal-footer">
 {#        <button type="button" class="btn btn-primary">Close</button>#}
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal window for audio talking(calling party)-->
+<div class="modal" tabindex="-1" role="dialog" id="myModalAudioCalling">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Audio Call</h5>
+      </div>
+      <div class="modal-body">
+          <p>Call the subscriber - <span id="subscribe_id_call"></span></p>
+          <div id="parent_div"></div>
+      </div>
+      <div class="modal-footer">
+{#          <button type="button" class="btn btn-primary">Close</button>#}
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" id="stop_audio">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--Modal window for audio talking(Callee)-->
+<div class="modal" tabindex="-1" role="dialog" id="myModalAudioCallee">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Audio Call</h5>
+      </div>
+      <div class="modal-body">
+          <p>Incoming call from the subscriber - <span id="subscribe_id_caller"></span></p>
+          <div id="parent_div"></div>
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-success" id="get_audio">Accept</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal" id="stop_audio">Dismiss</button>
       </div>
     </div>
   </div>
@@ -82,7 +120,7 @@
                                                 </td>
                                                 <td>
                                                     <p class="help-block"></p>
-                                                    <button type="button" class="btn btn-xs btn-success">
+                                                    <button type="button" class="btn btn-xs btn-success" id="audio_call">
                                                         Audio call
                                                     </button>
                                                 </td>
@@ -139,7 +177,7 @@
             </div>
         </div>
     </div>
-<div class="hellopreloader">
+    <div class="hellopreloader">
     <div class="hellopreloader_preload" id="hellopreloader_preload"></div>
 </div>
 <script>
@@ -154,5 +192,4 @@
     }
 </script>
 <script src="{% static "js/clientserver/socketserver1.js" %}"></script>
-{#<script src="{% static "js/clientserver/va.js" %}"></script>#}
 </body>
