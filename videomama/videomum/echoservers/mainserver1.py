@@ -245,6 +245,7 @@ class Mainserver:
             mes = {"status": 5, "online": online, "allcontacts": all_contacts, "id": 0}
         return mes
 
+
 #start server
 if __name__ == '__main__':
     mainServer = Mainserver(ListStorage(), MSMessageStorage(), DictStorage(), LogServerOne())

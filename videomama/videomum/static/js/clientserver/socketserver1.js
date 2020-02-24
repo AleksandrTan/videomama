@@ -25,6 +25,7 @@
     if (!'MediaSource' in window && !MediaSource.isTypeSupported(mimeCodec)) {
             alert('Unsupported MIME type or codec: ', mimeCodecVideo);
     }
+
     //---------------------Socket----------------------------//
 
     function getSocketConnect(){

@@ -9,7 +9,6 @@ from videomum.usercontacts.msdb.models import Messages
 
 
 class MSMessageStorage(SuperMesStorage):
-
     def get_messages(self, whom_id: int, from_id: int) -> dict:
         messages = {m['id']: m for m in Messages.select().where((Messages.whom_id == whom_id)
                                                                 & (Messages.status_receiving == 0)
@@ -58,6 +57,7 @@ class MSMessageStorage(SuperMesStorage):
                   & (Messages.date_create == date.today()))
         query = (user_messages | contact_message).order_by(SQL('time_create')).dicts()
         return {m['id']: m for m in query}
+
 
 if __name__ == "__main__":
     data = MSMessageStorage()

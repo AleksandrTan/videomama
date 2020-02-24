@@ -227,7 +227,7 @@ function parseOnlineTimer(usersOnline = {}, allContacts = {}, isset_messages = {
      if (sockConnect.readyState == 1 && dataconnect.activTouchId) {
          sockConnect.send(prepareData(8, dataconnect.userId, dataconnect.activTouchId));
      }
- }, 5000);
+ }, 1000);
 
 ////---------------------------------Get Server response------------------------------------///
 //Get server response
