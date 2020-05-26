@@ -1,2 +1,5 @@
 2019-01-03 13:53:12,200 - mainserver1 - INFO - [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
 2019-01-15 12:29:28,271 - mainserver1 - INFO - 'utf-8' codec can't decode byte 0xa1 in position 16: invalid start byte
+2019-01-31 20:45:38,739 - mainserver1 - INFO - a bytes-like object is required, not 'str'
+2019-01-31 20:48:01,574 - mainserver1 - INFO - a bytes-like object is required, not 'str'
+2019-01-31 20:51:52,970 - mainserver1 - INFO - a bytes-like object is required, not 'str'

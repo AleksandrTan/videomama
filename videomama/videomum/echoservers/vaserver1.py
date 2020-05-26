@@ -2,7 +2,8 @@
 """
 Server for video/audio messaging
 """
-import os
+# import sys
+# import os
 from socket import *
 import hashlib
 import base64
@@ -11,8 +12,9 @@ import array
 from base64 import b64encode
 import _thread as thread
 import json
+#for fire server add videomum in path envirt.
+#sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from videomama import settings
 from videomum.logobject.logserver1 import LogServerOne
 from videomum.usercontacts.msdb.msdbcontacts import MySqlStorage
 from videomum.onlinestorage.liststorage import ListStorage

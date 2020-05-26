@@ -16,6 +16,10 @@ class SuperMesStorage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def update_message(self, whom_id: int, from_id: int, mes_id: int) -> None:
+        pass
+
+    @abstractmethod
     def save_message(self, whom_id: int, text_message: str, from_id: int, from_name: str)->None:
         pass
 

@@ -20,12 +20,12 @@
     let recorder;
     let mediaStream;
     //let mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
-    //let mimeCodec = 'video/webm;codecs="vp8, opus"';
-    //let mimeTypes = 'video/webm';
+    let mimeCodecVideo = 'video/webm;codecs="vp8, opus"';
+    let mimeTypesVideo = 'video/webm';
     let is_video = false;
     let is_audio = true;
-    let mimeCodec = 'audio/webm;codecs="opus"';
-    let mimeTypes = 'audio/webm';
+    let mimeCodecAudio = 'audio/webm;codecs="opus"';
+    let mimeTypesAudio = 'audio/webm';
     let sourceBuffer;
     let mediaSource;
     let replay;
@@ -33,11 +33,9 @@
     let parent_div1 = document.getElementById('parent_div1');
     let startButton = document.getElementById('record');
     let stopButton = document.getElementById('stop');
-    let myvideo;
-
 
     if (!'MediaSource' in window && !MediaSource.isTypeSupported(mimeCodec)) {
-            alert('Unsupported MIME type or codec: ', mimeCodec);
+            alert('Unsupported MIME type or codec: ', mimeCodecVideo);
     }
 
     function getSocketConnect() {
@@ -53,12 +51,11 @@
     };
 //open connection
     sockConnect.onopen = function(ws) {
-        //console.log("Соединение открыто...");
+        console.log("Соединение открыто...");
         if(this.readyState == 1){
             //send user id after establishing connection
             setTimeout(function () {
                 sockConnect.send(prepareData(1, 1));
-                //console.log("req");
             }, 1000);
         }
     };
@@ -67,7 +64,6 @@
               let answer = JSON.parse(event.data);
             //Get message
               if(answer.status == 10){
-                  //console.log(event.data);
                   flag = 1;
               }
           }
@@ -97,7 +93,8 @@
                 parent_div.appendChild(replay);
                 mediaSource.addEventListener('sourceopen', function () {
                     if (stream){
-                        sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+                        sourceBuffer = (is_video)?mediaSource.addSourceBuffer(mimeCodecVideo)
+                            :mediaSource.addSourceBuffer(mimeCodecAudio);
                         getRecorder();
                         setTimeout(function () {
                             recorder.start(100);
@@ -116,7 +113,8 @@
             });
         }
 
-        function getRecorder() {
+    function getRecorder() {
+            let mimeTypes = (is_video)?mimeTypesVideo:mimeTypesAudio;
             let options = { mimeType: mimeTypes, audioBitsPerSecond: 128000 };
             recorder = new MediaRecorder(mediaStream, options);
             recorder.ondataavailable = videoDataHandler;
@@ -127,12 +125,12 @@
                 sourceBuffer = '';
                 mediaStream = '';
                 replay.remove();
+                flag = 0;
                 storage = [];
-                //myvideo.remove();
             });
         }
 
-        function videoDataHandler(event) {
+    function videoDataHandler(event) {
             if (recorder.state == 'recording'){
                 let fileReader = new FileReader();
                 fileReader.readAsArrayBuffer(event.data);
@@ -155,15 +153,15 @@
                 };
             }
         }
-        startButton.addEventListener('click', function (e) {
+    startButton.addEventListener('click', function (e) {
             getVideoStream();
         });
 
-        stopButton.addEventListener('click', function (e) {
+    stopButton.addEventListener('click', function (e) {
             recorder.stop();
         });
     //Close brouser or page
-        window.onbeforeunload = function () {
+    window.onbeforeunload = function () {
             sockConnect.send(prepareData(3, 1));
             sockConnect.close();
         };
