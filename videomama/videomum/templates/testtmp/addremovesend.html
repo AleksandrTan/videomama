@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/adapterjs/0.15.4/adapter.min.js"></script>
 </head>
 <body>
 <!--<video id="video" autoplay src="https://example-files.online-convert.com/video/webm/example.webm" controls></video>-->
+
 <div id="parent_div">
 
 </div>
@@ -31,9 +33,9 @@
 
         function getSocketConnect() {
         let myHost = '127.0.0.1';
-        let myPort = 50009;
+        let myPort = 8765;
         connection = new WebSocket("ws://" + myHost + ":" + myPort);
-        connection.binaryType = 'arraybuffer';
+        connection.binaryType = 'blob';
         return connection;
     }
 //Create socket object
@@ -46,7 +48,7 @@
             setTimeout(function () {
                 sockConnect.send(prepareData(1, 67));
                 console.log("req");
-            }, 1000);
+            }, 100);
         }
     };
     sockConnect.onmessage = function(event) {
@@ -90,43 +92,60 @@
         }
 
         function getRecorder() {
-            let options = { mimeType: 'video/webm', audioBitsPerSecond: 128000 };
+            let options = { mimeType: 'video/webm', audioBitsPerSecond: 128000, videoBitsPerSecond:158000};
             recorder = new MediaRecorder(mediaStream, options);
             recorder.ondataavailable = videoDataHandler;
-            recorder.addEventListener('stop', function () {
-                mediaSource.endOfStream();
-                mediaSource.removeSourceBuffer(sourceBuffer);
-                mediaSource = '';
-                sourceBuffer = '';
-                storage = [];
-                replay.remove();
-            });
+            // recorder.addEventListener('stop', function () {
+            //     mediaSource.endOfStream();
+            //     mediaSource.removeSourceBuffer(sourceBuffer);
+            //     mediaSource = '';
+            //     sourceBuffer = '';
+            //     storage = [];
+            //     replay.remove();
+            // });
         }
 
+        // function videoDataHandler(event) {
+        //     if (recorder.state == 'recording'){
+        //         fileReader.readAsDataURL(event.data);
+        //         fileReader.onload = function() {
+        //             // console.log(fileReader.result);
+        //             sockConnect.send(event.data);
+        //             //storage.unshift(fileReader.result);
+        //             // if (sourceBuffer.updating || storage.length > 0){
+        //             //     //console.log(1);
+        //             //     sourceBuffer.appendBuffer(storage.pop());
+        //             // }
+        //         };
+        //     }
+        // }
         function videoDataHandler(event) {
-            if (recorder.state == 'recording'){
-                fileReader.readAsArrayBuffer(event.data);
-                fileReader.onload = function() {
-                    sockConnect.send(fileReader.result);
-                    //storage.unshift(fileReader.result);
-                    if (sourceBuffer.updating || storage.length > 0){
-                        //console.log(1);
-                        sourceBuffer.appendBuffer(storage.pop());
-                    }
-                };
+            console.log(event.data);
+            if(event.data.size > 59500)
+            {
+                let new_blob = new Blob([event.data.slice(0, 59500)], {type: 'video/webm'});
+                let new_blob1 = new Blob([event.data.slice(59501, event.data.size)], {type: 'video/webm'});
+                console.log(new_blob);
+                console.log(new_blob1);
+                sockConnect.send(new_blob);
+                sockConnect.send(new_blob1);
+
+                return;
             }
+            sockConnect.send(event.data);
         }
         startButton.addEventListener('click', function (e) {
-            mediaSource = new MediaSource();
-            mediaSource.addEventListener('sourceopen', function () {
-                sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-            });
-            replay = document.createElement('video');
-            replay.setAttribute('controls', 'controls');
-            parent_div.appendChild(replay);
-            replay.src = window.URL.createObjectURL(mediaSource);
-            replay.addEventListener('error',function(e){ console.error(e); });
-            replay.play();
+            // mediaSource = new MediaSource();
+            // mediaSource.addEventListener('sourceopen', function () {
+            //     sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+            // });
+            // replay = document.createElement('video');
+            // replay.setAttribute('controls', 'controls');
+            // parent_div.appendChild(replay);
+            // replay.src = window.URL.createObjectURL(mediaSource);
+            // replay.addEventListener('error',function(e){ console.error(e); });
+            // replay.play();
+
             recorder.start(100);
         });
         stopButton.addEventListener('click', function (e) {

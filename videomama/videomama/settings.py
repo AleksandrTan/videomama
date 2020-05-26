@@ -25,7 +25,7 @@ SECRET_KEY = 'ii!pn$-mw0bbh(!!&$31vjr&*n^6_$*_we4c5o*7a940(3nnw3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'videomama.com']
 
 
 # Application definition
@@ -83,8 +83,10 @@ DATABASES = {
         # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'videomama',
-        'USER': 'root',
-        'PASSWORD': 'root',
+        'USER': 'rumych1@localhost',
+        'PASSWORD': '12345678',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
     }
 }
 

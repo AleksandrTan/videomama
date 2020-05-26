@@ -21,7 +21,7 @@ from videomum.onlinestorage.liststorage import ListStorage
 class VAMainserverOne:
     def __init__(self):
         self.myHost = '127.0.0.1'
-        self.myPort = 50009
+        self.myPort = 8765
         self.onlinestorage = ListStorage()
         self.magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
         self.mainsocket = socket(AF_INET, SOCK_STREAM)
@@ -79,17 +79,17 @@ class VAMainserverOne:
                                 self.onlinestorage.checkuserid(data_payload['userId'])
                             #send answer
                             connection.send(self.send_frame(json.dumps({"status": 10, "id": 0}).encode(), 0x1))
-                            #file = open(os.path.join(settings.BASE_DIR, 'media')+'\\myvideo.mp4', 'wb')
-                            #file = open('my.mp4', 'wb')
+                            file = open(os.path.join(settings.BASE_DIR, 'media')+'\\myvideo.mp4', 'wb')
+                            # file = open('my.mp4', 'wb')
                             while True:
                                 dataGetw = connection.recv(100000)
                                 #print(dataGetw)
                                 dataCleans = self.decode_frame(dataGetw)
-                                print(dataCleans)
+                                print(dataCleans['length'])
                                 # the frame does not contain continuation(came all the data)
-                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1:
-                                    # file.write(dataCleans['payload'])
-                                    connection.send(self.send_frame(dataCleans['payload'], 0x2))
+                                if dataCleans['opcode'] == 2 and dataCleans['fin'] == 1 and dataCleans['length'] < 60000:
+                                    file.write(dataCleans['payload'])
+                                    # connection.send(self.send_frame(dataCleans['payload'], 0x2))
                                     continue
                                 #pong
                                 if dataCleans['opcode'] == 9:
